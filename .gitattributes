@@ -1,0 +1,7 @@
+# Окончания строк: LF везде (скрипты для WSL/Linux ломаются от CRLF)
+* text=auto eol=lf
+*.ps1 text eol=crlf
+
+# Git LFS: двоичные ассеты
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.png filter=lfs diff=lfs merge=lfs -text
