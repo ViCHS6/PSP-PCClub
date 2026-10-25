@@ -1,0 +1,33 @@
+# Сборка
+build/
+*.elf
+*.prx
+EBOOT.PBP
+PARAM.SFO
+*.o
+*.a
+
+# Сгенерированные данные и ассеты
+*.pak
+assets/**/*.msh
+assets/**/*.tex
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Отчёты balance-runner
+*.csv.out
+balance*.csv
+balance*.html
+
+# IDE и ОС
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
+
+# Локальные настройки агентов
+.claude/settings.local.json

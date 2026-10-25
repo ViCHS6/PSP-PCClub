@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Разработка игр для Sony PSP — инструменты и ограничения</title>
+<style>
+:root{--ink:#172b3a;--muted:#526675;--accent:#006c91;--line:#dbe4e9;--paper:#fff;--wash:#f3f7f9}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.7 'Segoe UI',Arial,sans-serif}
+.top{background:#102b3d;color:#d4e9f1;padding:22px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px}.top strong{letter-spacing:2px;font-size:13px}.top span{font-size:13px;color:#a9c9d8}.top button{border:1px solid #7195a8;border-radius:7px;padding:8px 13px;background:transparent;color:white;font:inherit;font-size:13px;cursor:pointer}
+.layout{display:grid;grid-template-columns:236px minmax(0,1020px);gap:40px;max-width:1420px;margin:auto;padding:36px 32px 64px}aside{position:sticky;top:24px;align-self:start;font-size:13px;line-height:1.5}aside p{font-weight:700;font-size:11px;letter-spacing:1.6px;color:var(--muted);margin:0 0 16px}aside a{display:block;padding:8px 10px;margin-bottom:4px;border-left:2px solid var(--line);text-decoration:none;color:var(--muted)}aside a:hover{color:var(--accent);border-color:var(--accent);background:white}
+main{background:var(--paper);padding:48px 52px;border:1px solid var(--line);border-radius:12px;min-width:0;box-shadow:0 5px 20px #12334405}h1{font-size:42px;letter-spacing:-1.5px;line-height:1.12;margin:0 0 20px;max-width:760px}h1+p{font-size:13px;color:var(--muted);padding-bottom:25px;border-bottom:1px solid var(--line)}h1+p+p{font-size:18px;line-height:1.65;border-left:4px solid var(--accent);padding:16px 20px;background:#edf7fb;border-radius:0 7px 7px 0}h2{font-size:28px;line-height:1.3;letter-spacing:-.6px;margin:52px 0 20px;padding-top:10px;border-top:2px solid var(--line)}h3{font-size:20px;line-height:1.4;margin:30px 0 14px}p{margin:14px 0}strong{font-weight:650}a{color:var(--accent);text-underline-offset:3px;overflow-wrap:anywhere}li{margin:7px 0}ul,ol{padding-left:25px}code{font:13px/1.65 Consolas,'Courier New',monospace;background:#edf2f5;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}pre{background:#122d3f;color:#d9edf4;border-radius:8px;padding:19px 21px;overflow:auto;margin:22px 0}pre code{background:transparent;padding:0;color:inherit;white-space:pre;overflow-wrap:normal}.table-wrap{overflow-x:auto;margin:22px 0;border:1px solid var(--line);border-radius:8px}table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.55}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;min-width:95px}th{background:#eaf1f5;font-size:12px;font-weight:700;color:#294b5e}tr:nth-child(even) td{background:#f8fafb}tr:last-child td{border-bottom:0}td:first-child{font-weight:550}td code{font-size:12px}footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:24px;margin-top:40px}
+@media(max-width:1050px){.layout{grid-template-columns:190px minmax(0,1fr);gap:20px;padding:24px 18px}main{padding:36px 28px}h1{font-size:36px}}
+@media(max-width:760px){.top{padding:18px 20px}.top span{display:none}.layout{display:block;padding:18px 12px}aside{position:static;margin-bottom:20px;padding:15px;background:white;border:1px solid var(--line);border-radius:8px}aside a{padding:5px 9px;display:inline-block;font-size:12px}main{padding:28px 20px}h1{font-size:32px}h2{font-size:24px}h1+p+p{font-size:16px}table{font-size:12.5px}th,td{padding:9px 10px}}
+@media print{@page{size:A4;margin:17mm 14mm}body{background:white;font-size:10pt;line-height:1.5}.top,aside{display:none}.layout{display:block;padding:0;max-width:none}main{border:0;border-radius:0;box-shadow:none;padding:0}h1{font-size:30pt}h2{font-size:19pt;break-after:avoid;margin-top:24pt}h3{font-size:13pt;break-after:avoid}p,li{orphans:3;widows:3}table{font-size:8pt}.table-wrap{overflow:visible}th,td{padding:6pt}tr,pre{break-inside:avoid}a{color:inherit;text-decoration:none}pre{white-space:pre-wrap;background:#f0f3f5;color:#172b3a}pre code{white-space:pre-wrap}footer{font-size:8pt}}
+</style></head><body>
+<header class="top"><strong>PSP / РАЗРАБОТКА ИГР</strong><span>Исследование · 25 октября 2026</span><button onclick="window.print()">Печать / PDF</button></header>
+<div class="layout"><aside aria-label="Содержание"><p>В ОТЧЁТЕ</p><a href="#route">1. Какой путь разработки выбрать</a>
+<a href="#models">2. Различия моделей</a>
+<a href="#tools">3. Необходимые инструменты и оборудование</a>
+<a href="#libraries">4. Библиотеки, движок и подготовка ресурсов</a>
+<a href="#setup">5. Настройка среды на Windows и первая сборка</a>
+<a href="#limits">6. Ограничения CPU, памяти и графики</a>
+<a href="#systems">7. Звук, управление, накопитель и сеть</a>
+<a href="#budgets">8. Начальные бюджеты проекта</a>
+<a href="#debug">9. Отладка и измерение производительности</a>
+<a href="#workflow">10. Процесс разработки и проверка релиза</a>
+<a href="#risks">11. Типичные ошибки и открытые решения</a>
+<a href="#sources">12. Источники и степень уверенности</a></aside><main><h1>Разработка игр для Sony PSP</h1>
+<p>Практический отчёт • Проверка источников: 25 октября 2026 года</p>
+<p><strong>Рекомендуемый старт:</strong> C или C++, современный PSPDEV/PSPSDK, WSL2 с Ubuntu на Windows, CMake, PPSSPP и настоящая PSP для проверки. Для максимально широкой совместимости проектировать игру под PSP-1000: 32 МБ физической RAM, ориентировочно 24 МиБ обычного пользовательского адресного пространства и базовый бюджет 2 МиБ видеопамяти.</p>
+<p>Это исследование инструментов и требований. SDK, драйверы и прошивки на компьютере или консоли не устанавливались; приведённые команды не проверялись запуском в этой среде. Сборка конкретной игры и замеры на устройстве в объём исследования не входят.</p>
+<a id="route"></a></p>
+<h2>1. Какой путь разработки выбрать</h2>
+<h3>1.1. Практический путь — homebrew</h3>
+<p>Для независимой разработки использовать <strong>PSPDEV</strong> — открытый комплект инструментов сообщества. В него входят компилятор, библиотеки и инструменты сборки; <strong>PSPSDK</strong> — его часть с интерфейсами системы PSP, графикой, звуком и примерами. Это отдельный от Sony проект. PSPDEV предусматривает создание приложений как для custom firmware, так и для официальной прошивки с подходящей упаковкой приложения. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/">PSPDEV</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspdev">состав комплекта</a>.</p>
+<p>Основной результат сборки — <code>EBOOT.PBP</code>, который запускается из папки игры. Для отладки сохраняются также ELF с символами и, при использовании PSPLINK, незашифрованный PRX. Не требуется превращать собственную игру в ISO. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/how_to_use.html">Руководство по сборке</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/debugging.html">отладка</a>.</p>
+<p>Историческая лицензированная разработка Sony с закрытым SDK, специальным оборудованием и выпуском на UMD — отдельный процесс. Доступность нового договора и выпуска для PSP в 2026 году в рамках исследования не подтверждена. Поэтому его нельзя закладывать как доступный путь старта; отчёт ориентирован на самостоятельное распространение homebrew.</p>
+<h3>1.2. Прошивка и запуск на устройстве</h3>
+<p>Для полного цикла разработки с PSPLINK практически удобна PSP, допускающая запуск homebrew и отладочных модулей. Для выпуска на официальной прошивке потребуется отдельно проверить подписанный вариант, используемые API и совместимость с выбранными версиями firmware. Наличие <code>ebootsigner</code> в комплекте само по себе не гарантирует запуск любой программы во всех конфигурациях. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/contributing.html">Инструменты PSPDEV</a>.</p>
+<p><strong>Актуальность руководств:</strong> README ARK-4 теперь направляет в <strong>ARK-5</strong>. ARK-5 направляет за установкой в FasterARK; его текущая инструкция указывает официальные прошивки 6.60/6.61. Старые инструкции PRO/ME/Infinity нельзя автоматически переносить на любую модель. Для уже работающей консоли сначала зафиксировать её модель, прошивку и способ запуска homebrew; менять firmware ради первого прототипа необязательно. <a target="_blank" rel="noopener noreferrer" href="https://github.com/PSP-Archive/ARK-4">ARK-4</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/PSP-Arkfive/ARK-5">ARK-5</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/PSP-Arkfive/FasterARK">FasterARK</a>.</p>
+<h3>1.3. Решение для первой игры</h3>
+<p>Моя инженерная рекомендация: <strong>однопользовательская игра, поддержка PSP-1000, 2D или компактное 3D, ресурсы с карты памяти, 30 либо 60 кадров/с по результатам прототипа</strong>. Это оставляет возможность позже добавить улучшения для моделей с большей памятью. Сетевая игра, собственное использование Media Engine и сложные видеоформаты заметно увеличивают объём платформенной работы.</p>
+<p><a id="models"></a></p>
+<h2>2. Различия моделей</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Модель</th>
+<th align="right">Физическая RAM</th>
+<th>Экран</th>
+<th>Хранение и связь</th>
+<th>Что учитывать в игре</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PSP-1000, Fat</td>
+<td align="right">32 МБ</td>
+<td>4,3″, 480 × 272</td>
+<td>UMD, Memory Stick PRO Duo, Wi-Fi</td>
+<td>Наиболее строгая база по памяти; проверять прежде всего на ней</td>
+</tr>
+<tr>
+<td>PSP-2000, Slim</td>
+<td align="right">64 МБ</td>
+<td>4,3″, 480 × 272</td>
+<td>UMD, Memory Stick PRO Duo, Wi-Fi, видеовыход</td>
+<td>Дополнительная RAM зависит от режима запуска; не считать её автоматически свободным heap</td>
+</tr>
+<tr>
+<td>PSP-3000</td>
+<td align="right">64 МБ</td>
+<td>4,3″, 480 × 272</td>
+<td>UMD, Memory Stick PRO Duo, Wi-Fi</td>
+<td>Проверить читаемость и движение изображения на реальном дисплее; основная производительность того же класса</td>
+</tr>
+<tr>
+<td>PSP Go, N1000</td>
+<td align="right">64 МБ</td>
+<td>3,8″, 480 × 272</td>
+<td>16 ГБ встроенной flash, Memory Stick Micro M2, Wi-Fi, Bluetooth; без UMD</td>
+<td>Не привязывать пути к <code>ms0:</code>; встроенный накопитель обычно <code>ef0:</code>; свой USB-кабель</td>
+</tr>
+<tr>
+<td>PSP Street, E1000</td>
+<td align="right">64 МБ</td>
+<td>4,3″, 480 × 272</td>
+<td>UMD, Memory Stick PRO Duo; без Wi-Fi</td>
+<td>Обязательный offline-сценарий; встроенный динамик монофонический</td>
+</tr>
+</tbody></table></div>
+<p>Источники характеристик: <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/uploads/sites/5/2023/02/040512a.pdf">PSP-1000 — Sony, спецификация</a>, <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/2007/pspplaystationportable-becomes-slimmer-and-lighter/">PSP-2000 — Sony</a>, <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/new-psp-playstationportable-comes-with-advanced-lcd-screen-and-built-in-microphone/">PSP-3000 — Sony</a>, <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/psp-playstationportable-go-----available-at-an-attractive-new-price-of-16800-yen---starting-october-26-2010/">PSP Go — Sony</a>, <a target="_blank" rel="noopener noreferrer" href="https://blog.playstation.com/archive/2011/08/16/new-psp-announced-at-gamescom-2011/">Street без Wi-Fi — PlayStation</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.playstation.com/content/dam/global_pdc/en/corporate/support/manuals/psp-docs/ESPT_PSP-E1004-6.50_Web.pdf">руководство Street, звук и разъёмы</a>. Разделение RAM на 32/64 МБ дополнительно отражено в <a target="_blank" rel="noopener noreferrer" href="https://github.com/hrydgard/ppsspp/blob/master/Core/MemMap.h">реализации памяти PPSSPP</a>; фактическую доступность памяти проверять на устройстве.</p>
+<p><strong>PS Vita с режимом PSP и PPSSPP — дополнительные конфигурации проверки.</strong> Они не заменяют физическую PSP, если игра заявлена для оригинальной консоли.</p>
+<p><a id="tools"></a></p>
+<h2>3. Необходимые инструменты и оборудование</h2>
+<h3>3.1. Программный минимум</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Инструмент</th>
+<th>Назначение</th>
+<th>Обязательность</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>PSPDEV</strong></td>
+<td>Готовое окружение разработки; удобнее ставить комплект целиком</td>
+<td>Обязательно либо эквивалентная ручная сборка компонентов</td>
+</tr>
+<tr>
+<td><strong>psptoolchain / Allegrex GCC</strong></td>
+<td>Кросс-компиляция C/C++ в код PSP: <code>psp-gcc</code>, <code>psp-g++</code>; binutils, linker, <code>newlib</code></td>
+<td>Обязательно; входит в PSPDEV</td>
+</tr>
+<tr>
+<td><strong>PSPSDK</strong></td>
+<td>Заголовки, системные библиотеки, runtime, GU/GUM, PCM-звук, примеры</td>
+<td>Обязательно; входит в PSPDEV</td>
+</tr>
+<tr>
+<td><strong>GNU Make или CMake через <code>psp-cmake</code></strong></td>
+<td>Сборка проекта под PSP; для CMake дополнительно нужен build tool, обычно Make</td>
+<td>Выбрать подходящую схему</td>
+</tr>
+<tr>
+<td><strong>Упаковщики PSPSDK</strong></td>
+<td><code>mksfo</code>/<code>mksfoex</code>, <code>pack-pbp</code>, <code>psp-prxgen</code> создают метаданные и исполняемый пакет</td>
+<td>Нужны, но обычно вызываются сборочной системой</td>
+</tr>
+<tr>
+<td><strong>WSL2 + Ubuntu на Windows</strong></td>
+<td>Запуск Linux-инструментов PSPDEV</td>
+<td>Рекомендуемая основная среда Windows</td>
+</tr>
+<tr>
+<td><strong>Docker</strong></td>
+<td>Изолированная воспроизводимая сборка вместо установки SDK в WSL</td>
+<td>Альтернатива; одновременно оба способа не нужны</td>
+</tr>
+<tr>
+<td><strong>Редактор: VS Code либо другой</strong></td>
+<td>Редактирование C/C++, проектов и скриптов</td>
+<td>Любой удобный; VS Code рекомендует PSPDEV</td>
+</tr>
+<tr>
+<td><strong>Git</strong></td>
+<td>Контроль исходников, фиксация зависимостей и работа с примерами</td>
+<td>Настоятельно рекомендуется</td>
+</tr>
+<tr>
+<td><strong>PPSSPP</strong></td>
+<td>Быстрый запуск, логи, отладчик, анализ графики</td>
+<td>Рекомендуется с первого дня</td>
+</tr>
+<tr>
+<td><strong>PSPLINK USB</strong></td>
+<td>Запуск и диагностика программы на физической PSP с компьютера</td>
+<td>Рекомендуется для работы с устройством</td>
+</tr>
+<tr>
+<td><strong><code>psp-gdb</code>, <code>psp-addr2line</code>, <code>psp-gprof</code></strong></td>
+<td>Пошаговая отладка, расшифровка crash-адресов, CPU-профилирование</td>
+<td>Подключать по необходимости; входят в соответствующие компоненты PSPDEV</td>
+</tr>
+</tbody></table></div>
+<p>Состав и назначение компонентов подтверждаются <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspdev">описанием PSPDEV</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk">PSPSDK</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/contributing.html">схемой toolchain</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/how_to_use.html">руководством по редактору и сборке</a> и <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/debugging.html">отладке</a>.</p>
+<p><strong>Не скачивать каждый компонент отдельно без необходимости.</strong> Установка готового PSPDEV закрывает большую часть таблицы. Полная сборка SDK из исходников нужна для изменения самого toolchain, специальных платформ или воспроизводимости на уровне исходников, а не для первого Hello World.</p>
+<h3>3.2. Оборудование</h3>
+<p>Нужны компьютер, носитель для игры и PSP с рабочими кнопками, аналоговым контроллером, питанием и возможностью запуска homebrew. Для обычных моделей использовать кабель mini-USB с передачей данных; у Go — собственный разъём. Для ручного копирования подойдёт USB-режим накопителя или совместимый кардридер. Для PSPLINK нужен именно обмен данными по USB.</p>
+<p>Минимально достаточно одной PSP выбранной целевой модели. Если заявляется поддержка всего семейства, разумный тестовый набор — PSP-1000, одна из 2000/3000, Go и Street. Вторую Wi-Fi PSP добавлять, когда начинается разработка ad hoc. Это рекомендация по покрытию, а не требование SDK.</p>
+<h3>3.3. Версии и воспроизводимость</h3>
+<p>На дату проверки GitHub API PSPDEV возвращает <strong><code>v20261001</code></strong> как последний опубликованный обычный release, от 1 октября 2026 года. Среди assets есть <code>pspdev-ubuntu-latest-x86_64.tar.gz</code>, ARM64-сборка Ubuntu и сборки для других систем. Это дата комплекта PSPDEV, а не версия firmware PSP. <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspdev/releases/tag/v20261001">Релиз v20261001</a>.</p>
+<p>Для проекта сохранять release/tag или commit SDK, версию компилятора, список библиотек и параметры сборки. Для Docker фиксировать digest образа либо конкретный tag после проверки. <code>latest</code> удобен для знакомства, но не фиксирует неизменное окружение. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/installation/docker.html">Docker PSPDEV</a>, <a target="_blank" rel="noopener noreferrer" href="https://hub.docker.com/r/pspdev/pspdev/tags">образы и теги</a>.</p>
+<p><a id="libraries"></a></p>
+<h2>4. Библиотеки, движок и подготовка ресурсов</h2>
+<h3>4.1. Выбор основы игры</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Вариант</th>
+<th>Когда выбирать</th>
+<th>Цена решения</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>C/C++ + GU/GUM из PSPSDK</strong></td>
+<td>Небольшая 2D/3D-игра, важен контроль памяти и рендеринга</td>
+<td>Самостоятельно организовать игровые объекты, ресурсы, UI и форматы данных</td>
+</tr>
+<tr>
+<td><strong>C/C++ + SDL2</strong></td>
+<td>2D-игра или перенос существующего SDL-кода</td>
+<td>Проверять PSP-backend, расходы памяти и поведение конкретных SDL API</td>
+</tr>
+<tr>
+<td><strong>PSPGL</strong></td>
+<td>Перенос подходящего старого OpenGL-кода</td>
+<td>Уточнить реализованное подмножество API; не ожидать возможностей современного OpenGL</td>
+</tr>
+<tr>
+<td><strong>Lua поверх собственного приложения</strong></td>
+<td>Нужны сценарии, диалоги, правила уровней</td>
+<td>Интерпретатор и сборщик мусора добавляют затраты; графический и системный слой всё равно нужен</td>
+</tr>
+<tr>
+<td><strong>Сторонний PSP-движок/порт</strong></td>
+<td>Есть исходники и рабочий пример на нужной модели</td>
+<td>Сначала собрать пример, проверить лицензию, зависимости, RAM и поддержку актуального SDK</td>
+</tr>
+</tbody></table></div>
+<p>В актуальном каталоге PSPDEV присутствуют SDL2 и SDL3 с дополнениями, PSPGL, несколько версий Lua, библиотеки изображений, шрифтов, звука и физики. Сам факт наличия пакета не означает, что сложная игра на нём уложится в возможности PSP. <strong>Для первого проекта рекомендую GU/GUM либо SDL2; SDL3 оценивать отдельным прототипом.</strong> <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/psp-packages/">Каталог пакетов</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk">реализация PSPSDK</a>.</p>
+<p>Не строить план вокруг предполагаемой кнопки экспорта из современного Unity, Unreal или Godot. Если выбран конкретный неофициальный порт такого движка, сначала подтвердить его работоспособность, сборку и производительность. Проверенная в этом отчёте основа — PSPDEV и нативный код.</p>
+<h3>4.2. Библиотеки по потребности</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Задача</th>
+<th>Доступные варианты в PSPDEV</th>
+<th>На что смотреть</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PNG/JPEG</td>
+<td><code>libpng</code>, <code>jpeg</code>, <code>sdl2-image</code></td>
+<td>Декодированная картинка и временные буферы занимают RAM независимо от размера файла</td>
+</tr>
+<tr>
+<td>Шрифты</td>
+<td><code>freetype2</code>, <code>libintrafont</code>, <code>sdl2-ttf</code></td>
+<td>Кириллица, нужные глифы, стоимость растеризации и кэш</td>
+</tr>
+<tr>
+<td>Музыка/эффекты</td>
+<td><code>sdl2-mixer</code>, <code>libvorbis</code>, <code>mpg123</code>, <code>libmikmod</code>, низкоуровневый PCM</td>
+<td>Совместимость формата, CPU на декодирование, размер буферов</td>
+</tr>
+<tr>
+<td>Упаковка данных</td>
+<td><code>zlib</code>; собственный pack-файл</td>
+<td>Пиковая память распаковки и задержки чтения</td>
+</tr>
+<tr>
+<td>Сценарии/данные</td>
+<td>Lua, <code>cjson</code></td>
+<td>Не создавать большие деревья объектов в каждом кадре</td>
+</tr>
+<tr>
+<td>Физика</td>
+<td>Box2D, Bullet либо своя простая физика</td>
+<td>Количество тел, контактов, шагов симуляции; отдельно измерять на PSP</td>
+</tr>
+<tr>
+<td>Сеть</td>
+<td>API PSPSDK, ENet, curl, <code>sdl2-net</code></td>
+<td>Модули системы, память, совместимость протоколов и сервера</td>
+</tr>
+</tbody></table></div>
+<p>Подтверждение наличия: <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/psp-packages/">каталог PSPDEV</a>. Ставить только зависимости, которые действительно использует проект; пакетный менеджер — <code>psp-pacman</code>.</p>
+<h3>4.3. Редакторы и конвертеры ресурсов</h3>
+<p>Это инструменты на компьютере; их файлы обычно надо преобразовать в удобный игре формат.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Ресурс</th>
+<th>Инструменты</th>
+<th>Рекомендуемый результат экспорта</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Спрайты и UI</td>
+<td>Aseprite или привычный графический редактор</td>
+<td>Атласы допустимого размера, кадры и координаты; затем преобразование в формат текстур PSP</td>
+</tr>
+<tr>
+<td>Карты 2D</td>
+<td>Tiled</td>
+<td>JSON/TMX/CSV как промежуточный формат; для релиза можно конвертировать в компактный бинарный</td>
+</tr>
+<tr>
+<td>Модели и анимация</td>
+<td>Blender</td>
+<td>Упрощённая геометрия, UV, подготовленные текстуры и экспорт под выбранный загрузчик</td>
+</tr>
+<tr>
+<td>Звук</td>
+<td>Audacity, при необходимости FFmpeg</td>
+<td>PCM/WAV для коротких эффектов; для музыки — формат, проверенный выбранным декодером</td>
+</tr>
+<tr>
+<td>Автоматизация</td>
+<td>Python или другая привычная скриптовая среда</td>
+<td>Проверка размеров, упаковка, палитры, swizzle, конвертация моделей и таблиц</td>
+</tr>
+</tbody></table></div>
+<p>Источники возможностей: <a target="_blank" rel="noopener noreferrer" href="https://aseprite.org/docs/basics/">экспорт спрайтов Aseprite</a>, <a target="_blank" rel="noopener noreferrer" href="https://doc.mapeditor.org/en/stable/manual/export/">экспорт Tiled</a>, <a target="_blank" rel="noopener noreferrer" href="https://docs.blender.org/manual/en/5.0/render/cycles/baking.html">запекание света и материалов Blender</a>, <a target="_blank" rel="noopener noreferrer" href="https://manual.audacityteam.org/man/file_export_dialog.html">экспорт Audacity</a>.</p>
+<p><strong>Ограничения ресурсов должны проверяться при экспорте:</strong> размеры текстур, формат пикселей, наличие глифов, число костей в batch, размер уровня, расходы RAM/VRAM. Материалы Blender с произвольными shader nodes не превращаются автоматически в материалы PSP. Свет и сложные эффекты часто выгоднее запечь в текстуры или vertex colors.</p>
+<p><a id="setup"></a></p>
+<h2>5. Настройка среды на Windows и первая сборка</h2>
+<h3>5.1. Основной вариант — WSL2 + Ubuntu</h3>
+<ol>
+<li>Установить WSL с Ubuntu по инструкции PSPDEV; <code>wsl --install</code> выполняется в PowerShell с правами администратора, после чего может понадобиться перезагрузка.</li>
+<li>Установить зависимости и распаковать готовый PSPDEV для соответствующих Ubuntu и архитектуры. Не смешивать x86-64/ARM64 или архивы для разных ОС.</li>
+<li>Задать в shell переменную <code>PSPDEV</code> и добавить <code>$PSPDEV/bin</code> в <code>PATH</code>.</li>
+<li>Проверить <code>psp-config --pspdev-path</code> и <code>psp-gcc --version</code>.</li>
+</ol>
+<p>Пример переменных внутри Ubuntu, если SDK распакован в <code>~/pspdev</code>:</p>
+<pre><code class="language-bash">export PSPDEV=&quot;$HOME/pspdev&quot;
+export PATH=&quot;$PSPDEV/bin:$PATH&quot;
+psp-config --pspdev-path
+psp-gcc --version
+</code></pre>
+<p>Инструкция с актуальным перечнем системных пакетов и архивов: <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/installation/windows.html">PSPDEV для Windows</a>. Linux и macOS также поддерживаются; WSL нужен именно для Windows-сценария.</p>
+<p><strong>Особенность текущей рабочей папки:</strong> <code>E:\ai tests\PSP_Game</code> содержит пробел. PSPDEV требует, чтобы путь установки SDK был абсолютным, без пробелов и специальных символов. SDK лучше разместить в <code>~/pspdev</code>, а рабочую Linux-сборку — например, в <code>~/src/psp_game</code>. Исходники в имеющейся папке можно сохранить; существующие файлы переносить ради отчёта не требуется. Сборку непосредственно из пути с пробелом надо отдельно проверить: часть старых Makefile может его обрабатывать неверно. <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspdev">Требования к пути PSPDEV</a>.</p>
+<h3>5.2. Альтернатива — Docker</h3>
+<p>Образ <code>pspdev/pspdev</code> содержит подготовленную среду сборки. Для Windows нужен Docker, умеющий запускать Linux-контейнеры. Пример ниже показывает, как корректно передать существующий путь с пробелом в PowerShell; он предполагает, что в папке уже есть Makefile проекта:</p>
+<pre><code class="language-powershell">docker run --rm --mount &quot;type=bind,source=E:\ai tests\PSP_Game,target=/source&quot; -w /source pspdev/pspdev:v20261001 make
+</code></pre>
+<p>Внутри контейнера путь будет <code>/source</code>. Доступ Docker к диску E: зависит от настроек компьютера. Перед сборкой следует проверить монтирование; не добавлять привилегированный режим без конкретной необходимости. Docker решает сборку, но USB-отладку на физической PSP нужно настраивать отдельно. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/installation/docker.html">Docker-инструкция PSPDEV</a>.</p>
+<h3>5.3. Первая проверка среды</h3>
+<p>В пустой папке проекта создать <code>main.c</code> и <code>CMakeLists.txt</code> по официальному <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/how_to_use.html">Hello World PSPDEV</a>. Затем в Ubuntu:</p>
+<pre><code class="language-bash">psp-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+</code></pre>
+<p>Ожидаемый результат — <code>EBOOT.PBP</code> в каталоге сборки. Сохранить рядом ELF с символами. Затем проверить пакет в PPSSPP и на устройстве:</p>
+<pre><code class="language-text">&lt;корень накопителя&gt;/
+└── PSP/
+    └── GAME/
+        └── MyGame/
+            ├── EBOOT.PBP
+            └── data/
+</code></pre>
+<p>Необходимо копировать и данные, которые ожидает программа. На PSP Go проверить внутренний накопитель отдельно. Для игровых ресурсов использовать путь запуска приложения или относительные пути, а не единственную жёстко заданную строку <code>ms0:</code>.</p>
+<p>После Hello World последовательность проверки: ввод → спрайт или треугольник → звук → чтение ресурса → сохранение → выход через HOME → suspend/resume. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/basic_programs.html">Базовые примеры PSPSDK</a>.</p>
+<p><a id="limits"></a></p>
+<h2>6. Ограничения CPU, памяти и графики</h2>
+<p>В этом разделе <strong>аппаратные ограничения</strong> отделены от <strong>рекомендаций проекта</strong>. Частоты, объём установленной памяти и поддерживаемые форматы — свойства платформы; количество врагов, полигонов или эффектов — результат конкретной реализации и замеров.</p>
+<h3>6.1. CPU и вычисления</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Свойство</th>
+<th>Ограничение и следствие</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Основной CPU</td>
+<td>32-битный MIPS-производный Allegrex, little-endian; обычный код ПК надо перекомпилировать и проверить предположения о данных</td>
+</tr>
+<tr>
+<td>Частота</td>
+<td>Штатный диапазон до 333 МГц; часто встречаются режимы 222 и 333 МГц. Частоту тестирования фиксировать</td>
+</tr>
+<tr>
+<td>Параллелизм</td>
+<td>Потоки игры делят основной CPU. Нельзя рассчитывать на несколько обычных CPU-ядер как на современном ПК</td>
+</tr>
+<tr>
+<td>FPU</td>
+<td>Аппаратно поддерживается одинарная точность <code>float</code>; <code>double</code> существенно дороже</td>
+</tr>
+<tr>
+<td>VFPU</td>
+<td>Полезен для векторов и матриц, но имеет особенности точности и требует корректной работы с контекстом потока</td>
+</tr>
+<tr>
+<td>Media Engine</td>
+<td>Второй специализированный процессор существует, но не является готовым дополнительным ядром для обычных игровых потоков</td>
+</tr>
+<tr>
+<td>Кэш и GPU</td>
+<td>GPU не видит грязные строки CPU-кэша; нужны корректная запись в память, синхронизация и время жизни буферов</td>
+</tr>
+<tr>
+<td>Управление памятью</td>
+<td>Нет обычной MMU; нельзя рассчитывать на настольную модель виртуальной памяти и подкачку вместо бюджета RAM</td>
+</tr>
+</tbody></table></div>
+<p>Источники: <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/psp-hardware/cpu/allegrex-overview/">Allegrex — разработчики PPSSPP</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/psp-internals/psp-development/">практические замечания по PSP</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/vfpu-docs/">исследование VFPU</a>.</p>
+<p>Практически: использовать литералы <code>1.0f</code>, функции вроде <code>sinf</code>/<code>sqrtf</code>, включить <code>-Wdouble-promotion</code> и <code>-Wfloat-conversion</code>. Физику, поиск пути и распаковку измерять на PSP. Сначала упрощать алгоритм и объём работы, затем оптимизировать горячие участки. Полезны пулы объектов и отсутствие неконтролируемых выделений памяти в кадре.</p>
+<p>Для совместимости не требовать разгона выше штатных 333 МГц. Наличие функции overclock в современных CFW не делает её базовой характеристикой консоли. Работа на 333 МГц также увеличивает расход батареи. <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/psp-hardware/cpu/allegrex-overview/">CPU PPSSPP</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/PSP-Arkfive/ARK-5">возможности ARK-5</a>.</p>
+<h3>6.2. RAM: объём консоли и память игры — разные величины</h3>
+<p><strong>32 МБ PSP-1000 не равны 32 МБ свободного <code>malloc</code>.</strong> В обычной схеме пользовательская область начинается с <code>0x08800000</code>, а 32-МиБ RAM заканчивается на <code>0x0A000000</code>: разница — 24 МиБ. Код, статические данные, библиотеки, стеки и служебные выделения тоже расходуют эту область. Это ориентир адресного пространства, а не обещание свободного heap после загрузки. <a target="_blank" rel="noopener noreferrer" href="https://github.com/hrydgard/ppsspp/blob/master/Core/MemMap.h">Карта памяти в PPSSPP</a>.</p>
+<p>Для 64-МБ моделей разность между концом RAM <code>0x0C000000</code> и той же базой пользователя даёт <strong>56 МиБ</strong>. Это верхняя оценка адресного диапазона при его расширении, а не гарантированный размер пользовательского раздела или свободного heap. Реальное распределение зависит от загрузчика, firmware, метаданных приложения и версии сборочной системы. Нужна проверка и режима старта, и фактического выделения памяти; единого гарантированного числа свободных мегабайт нет.</p>
+<p><strong>Изменение в современном PSPSDK:</strong> текущий <code>build.mak</code> для целевой firmware выше 3.90 использует политику расширенной памяти по умолчанию и допускает явное отключение через <code>PSP_LARGE_MEMORY=0</code>. Старое правило «всегда поставить <code>PSP_LARGE_MEMORY=1</code>» уже не универсально. Это описание конкретного Makefile; поведение CMake и загрузчиков необходимо сверять отдельно. <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk/blob/master/src/base/build.mak">Исходник build.mak</a>.</p>
+<p>Для совместимого с PSP-1000 проекта дополнительные RAM и специальные области памяти считать необязательными улучшениями. Настройка <code>PSP_HEAP_SIZE_KB</code> управляет запросом heap, но не создаёт физическую память. <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk/blob/master/src/user/pspmoduleinfo.h">Параметры runtime</a>.</p>
+<p>В диагностике учитывать текущий и максимальный расход собственных аллокаторов, свободное место внутри heap и размер доступного непрерывного блока. Суммарная свободная память не исключает отказ из-за фрагментации. Системные функции измеряют свои области, а не обязательно свободную память <code>malloc</code>; в частности, PSPSDK отдельно описывает <code>pspSdkTotalFreeUserMemSize</code>. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/group__SysMem.html">Менеджер памяти</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/group__PSPSDK.html">пояснение к пользовательской памяти</a>.</p>
+<h3>6.3. VRAM и экранные буферы</h3>
+<p><strong>Совместимый базовый бюджет — 2 МиБ графической eDRAM.</strong> Исторические спецификации Sony указывают 4 МБ eDRAM суммарно; эту цифру нельзя автоматически записывать как доступную игре VRAM на PSP-1000. Актуальный API содержит <code>sceGeEdramSetSize</code> с вариантами 2/4 МиБ и прямо указывает, что 4 МиБ не принимаются на Fat. Расширение на остальных конфигурациях нужно проверять; базовый рендерер лучше проектировать на 2 МиБ. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/pspge_8h.html">API GE</a>, <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/uploads/sites/5/2023/02/040512a.pdf">первоначальная спецификация Sony</a>.</p>
+<p>Ниже — <strong>расчёт</strong>, а не измерение. Приняты распространённые stride 512 пикселей и высота 272. Видимая ширина экрана — 480; stride означает шаг между строками буфера.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Размещение</th>
+<th align="right">Расход</th>
+<th align="right">Остаток от 2 МиБ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Один framebuffer, 16 бит</td>
+<td align="right"><code>512 × 272 × 2 = 278 528</code> байт = 272 КиБ</td>
+<td align="right">1 776 КиБ</td>
+</tr>
+<tr>
+<td>Два framebuffer, 16 бит</td>
+<td align="right">544 КиБ</td>
+<td align="right">1 504 КиБ</td>
+</tr>
+<tr>
+<td>Два framebuffer 16 бит + depth 16 бит</td>
+<td align="right">816 КиБ</td>
+<td align="right"><strong>1 232 КиБ</strong></td>
+</tr>
+<tr>
+<td>Два framebuffer 32 бита + depth 16 бит</td>
+<td align="right">1 360 КиБ</td>
+<td align="right"><strong>688 КиБ</strong></td>
+</tr>
+</tbody></table></div>
+<p>Оставшийся объём делят текстуры и дополнительные render targets с учётом выравнивания. Для 2D можно отказаться от depth, если он не нужен. Не следует выделять VRAM как будто экранные буферы бесплатны. Текстуры допускаются и в основной RAM; выгодное размещение зависит от доступа и сцены. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/group__GU.html">GU, размещение текстур и буферов</a>.</p>
+<h3>6.4. Графический конвейер</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Возможность</th>
+<th>Практическое ограничение</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Экран</td>
+<td>480 × 272; интерфейс проверять в родном разрешении и на небольшом дисплее</td>
+</tr>
+<tr>
+<td>GPU GE</td>
+<td>Около 166 МГц в штатной аппаратной схеме; фиксированный конвейер, без программируемых vertex/fragment shaders</td>
+</tr>
+<tr>
+<td>Текстурирование</td>
+<td>Одна текстура за проход; дополнительные слои требуют других решений или проходов</td>
+</tr>
+<tr>
+<td>Освещение</td>
+<td>До четырёх источников в фиксированном вершинном освещении; стоимость зависит от настроек</td>
+</tr>
+<tr>
+<td>Depth</td>
+<td>16-битная глубина; чрезмерный диапазон near/far увеличивает проблемы точности</td>
+</tr>
+<tr>
+<td>Stencil</td>
+<td>Делит биты с alpha framebuffer: RGB565 — без stencil, 5551 — 1 бит, 4444 — 4, 8888 — 8</td>
+</tr>
+<tr>
+<td>Skinning</td>
+<td>В GE предусмотрено восемь bone matrices; сложные скелеты требуют разбиения на batches или иной реализации</td>
+</tr>
+<tr>
+<td>Отсечение</td>
+<td>Неполный аппаратный clipping; большие треугольники у камеры и краёв могут потребовать обработки в программе</td>
+</tr>
+</tbody></table></div>
+<p>Источники: <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/psp-hardware/gpu/ge-overview/">устройство GE</a>, <a target="_blank" rel="noopener noreferrer" href="https://uofw.github.io/upspd/docs/hardware/psp_doc.pdf">аппаратная схема из исследовательской документации</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk/blob/master/src/ge/pspge.h">матрицы костей GE в PSPSDK</a>. Восемь матриц — предел конкретного аппаратного набора, а не общий предел костей персонажа во всей игре.</p>
+<p>Следствия для визуального стиля — инженерные рекомендации: запекать сложное освещение; ограничивать прозрачные слои, частицы и полноэкранные эффекты; группировать геометрию по материалам; применять culling и LOD. Современные PBR-материалы, normal mapping и постобработка потребуют собственной адаптации; их стоимость нельзя оценивать по версии игры на ПК.</p>
+<h3>6.5. Текстуры и форматы</h3>
+<p>У стандартного <code>sceGuTexImage</code> ширина и высота — степени двойки в диапазоне <strong>1–512</strong>, не обязательно одинаковые: например, 128 × 256. Текстура 480 × 272 как единое стандартное изображение требует иной упаковки, обычно контейнера 512 × 512 либо разбиения. Адрес данных должен быть выровнен на 16 байт; layout, stride и swizzle должны соответствовать настройкам GPU. <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk/blob/master/src/gu/sceGuTexImage.c">Проверки sceGuTexImage</a>.</p>
+<p>Расход квадратной текстуры, <strong>расчёт без mipmaps и служебных данных</strong>:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Размер</th>
+<th align="right">RGBA8888, 32 бита</th>
+<th align="right">16-битный цвет</th>
+<th align="right">Индексная T8</th>
+<th align="right">Индексная T4</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>128 × 128</td>
+<td align="right">64 КиБ</td>
+<td align="right">32 КиБ</td>
+<td align="right">16 КиБ</td>
+<td align="right">8 КиБ</td>
+</tr>
+<tr>
+<td>256 × 256</td>
+<td align="right">256 КиБ</td>
+<td align="right">128 КиБ</td>
+<td align="right">64 КиБ</td>
+<td align="right">32 КиБ</td>
+</tr>
+<tr>
+<td>512 × 512</td>
+<td align="right">1 024 КиБ</td>
+<td align="right">512 КиБ</td>
+<td align="right">256 КиБ</td>
+<td align="right">128 КиБ</td>
+</tr>
+</tbody></table></div>
+<p>У индексных форматов дополнительно хранится палитра CLUT. Для полной цепочки квадратных mipmaps ориентир — ещё около трети памяти. PNG/JPEG — форматы хранения: маленький сжатый файл не означает маленькую текстуру после декодирования. Две 512 × 512 RGBA8888 уже занимают весь базовый объём VRAM без framebuffer.</p>
+<p>Рекомендация: начинать с 64–256 пикселей на сторону, 16-битного или палитрового формата, заранее готовить swizzle и атласы до 512 × 512. DXT поддерживается платформой, но может проигрывать по скорости; выбирать после замера. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/group__GU.html">Форматы GU</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/psp-internals/psp-development/">замечания PPSSPP по памяти и DXT</a>.</p>
+<h3>6.6. FPS и сложность сцены</h3>
+<p>Для цели 60 кадров/с бюджет кадра около <strong>16,7 мс</strong>, для 30 — <strong>33,3 мс</strong>. Это расчёт <code>1000 / FPS</code>; CPU и GPU могут работать с перекрытием, поэтому отдельно измерять их занятость и ожидания синхронизации.</p>
+<p>Универсального полезного лимита «N полигонов», «N draw calls» или «N врагов» нет. Результат меняется из-за формата вершин, прозрачности, размера полигонов на экране, света, материалов, CPU-логики и чтения данных. Бюджет получить на стрессовой сцене конкретной игры. Пиковые рекламные показатели консоли не являются бюджетом реального кадра.</p>
+<p><a id="systems"></a></p>
+<h2>7. Звук, управление, накопитель и сеть</h2>
+<h3>7.1. Звук и видео</h3>
+<p>В базовом <code>sceAudio</code> доступно <strong>8 аппаратных каналов</strong>, mono/stereo PCM; длина буфера должна удовлетворять требованиям API, включая кратность 64 отсчётам. Это не предел в восемь звуков игры: программный mixer может смешать больше голосов, расходуя CPU. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/pspaudio_8h.html">PSPSDK Audio</a>.</p>
+<p>Для начала выбрать один проверенный выходной режим, например 44,1 кГц, 16-битное stereo, и ограничить число одновременно декодируемых потоков. <strong>Расчёт:</strong> PCM такого формата занимает <code>44 100 × 2 × 2 = 176 400</code> байт/с, около 10,1 МиБ за минуту. Поэтому длинную музыку лучше стримить, а короткие эффекты держать в памяти. Сжатие экономит носитель, но требует decoder buffers и времени CPU.</p>
+<p>На Street проверять монофонический динамик, а на всех целевых моделях — наушники, паузу и возобновление аудио. Видео и аппаратные декодеры PSP — отдельная интеграция: наличие поддержки H.264 у консоли не означает, что произвольный MP4 автоматически воспроизводится из игры. Формат, контейнер, API и сценарий streaming проверить отдельным примером. На раннем этапе разумнее обойтись без видео. <a target="_blank" rel="noopener noreferrer" href="https://www.playstation.com/content/dam/global_pdc/en/corporate/support/manuals/psp-docs/ESPT_PSP-E1004-6.50_Web.pdf">Спецификация Street</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/known-differences/">оговорки PPSSPP о Media Engine</a>.</p>
+<h3>7.2. Управление и интерфейс</h3>
+<p>Базовое управление: D-pad, <strong>один</strong> аналоговый контроллер, четыре лицевые кнопки, L/R, Start/Select. Нативного второго стика, L2/R2 и сенсорного экрана в качестве общей базы PSP нет. В современных заголовках SDK встречаются поля правого стика для Go с внешним контроллером, Vita, модификаций и эмуляции; они не означают второй стик на обычной PSP. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/structSceCtrlData.html">Структура ввода PSPSDK</a>, <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/2007/pspplaystationportable-becomes-slimmer-and-lighter/">физические органы управления Sony</a>.</p>
+<p>Рекомендации: dead zone для аналогового ввода, переназначение основных действий, камера без обязательного второго стика, крупные надписи с проверкой кириллицы. HOME и системные кнопки не занимать критическими игровыми действиями. Предусмотреть корректный системный выход, обработку потери фокуса и возвращение из сна. Базовый callback выхода показан в <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/how_to_use.html">Hello World PSPDEV</a>.</p>
+<h3>7.3. Носители, загрузки и сохранения</h3>
+<p>Для homebrew распространять папку игры с <code>EBOOT.PBP</code> и ресурсами. UMD — носитель только для чтения; его ёмкость не ограничивает размер игры, распространяемой с карты. Go обходится без UMD и имеет собственную внутреннюю flash. <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/psp-go-psp-playstationportable-evolves-to-match-the-digital-lifestyle/">Sony о Go</a>.</p>
+<p>Инженерные требования к I/O:</p>
+<ul>
+<li>не делать множество мелких синхронных чтений в основном цикле;</li>
+<li>использовать пакетирование, предзагрузку или ограниченные фоновые задачи;</li>
+<li>отдельно измерять скорость реальной карты и адаптера: USB 2.0 в спецификации не задаёт скорость чтения ресурсов игрой;</li>
+<li>обрабатывать отсутствие файла, полный носитель, отказ записи и повреждённое сохранение;</li>
+<li>сохранять версию формата и проверку целостности; по возможности писать во временный файл с последующей заменой;</li>
+<li>после suspend/resume проверять состояние потоков, аудио и файлов; не рассчитывать, что открытый ресурс всегда остался доступен.</li>
+</ul>
+<p>Предел одного файла и совместимость больших карт зависят от файловой системы, firmware и носителя. Например, FAT32 ограничивает один файл величиной менее 4 ГиБ; это ограничение формата носителя, а не бюджет RAM PSP. Для первой игры разумнее использовать существенно меньшие архивы и проверить выбранный носитель целиком. <a target="_blank" rel="noopener noreferrer" href="https://learn.microsoft.com/en-us/windows/win32/fileio/filesystem-functionality-comparison">Microsoft: сравнение файловых систем</a>.</p>
+<h3>7.4. Сеть</h3>
+<p>У Wi-Fi моделей используется <strong>IEEE 802.11b</strong>, инфраструктурный режим через точку доступа и ad hoc. Street не имеет Wi-Fi. Bluetooth Go не является общей сетевой возможностью семейства. <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/2007/pspplaystationportable-becomes-slimmer-and-lighter/">Sony о PSP-2000</a>, <a target="_blank" rel="noopener noreferrer" href="https://sonyinteractive.com/en/press-releases/psp-playstationportable-evolves-to-match-the-digital-lifestyle/">Sony о Go</a>, <a target="_blank" rel="noopener noreferrer" href="https://blog.playstation.com/archive/2011/08/16/new-psp-announced-at-gamescom-2011/">PlayStation о Street</a>.</p>
+<p>Штатная инструкция PSP перечисляет WEP и WPA-PSK TKIP/AES; обычную современную точку WPA2/WPA3 нельзя считать совместимой без проверки. При необходимости выделять отдельную совместимую тестовую сеть, сохраняя защиту основной сети. <a target="_blank" rel="noopener noreferrer" href="https://www.playstation.com/content/dam/global_pdc/en/corporate/support/manuals/psp-docs/psp-3004/PSP-3004-QR%24en.pdf">Настройки безопасности PSP — Sony</a>.</p>
+<p>Для собственного online-сервиса потребуются сервер, проверенные версии TLS/библиотек, таймауты, восстановление соединения и отдельное тестирование. Наличие сетевой библиотеки не гарантирует совместимость современного сервиса. Ad hoc не равен автоматически готовому интернет-мультиплееру. Для всей линейки сделать offline-режим; для сетевой игры публиковать отдельный список поддерживаемых моделей.</p>
+<h3>7.5. Питание и жизненный цикл</h3>
+<p>Игра должна корректно переживать сон и пробуждение, системный выход и длительную работу. Не использовать busy-wait для ожидания кадра; временно неактивные потоки должны освобождать CPU. В тестах фиксировать питание от батареи или сети, яркость, частоты и состояние WLAN — это влияет на повторяемость. Конкретное время автономной работы нельзя обещать по паспортным данным старой батареи. <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/psp-hardware/cpu/allegrex-overview/">Частота и энергопотребление CPU</a>, <a target="_blank" rel="noopener noreferrer" href="https://manuals.playstation.net/document/en/psp/current/settings/wlan.html">энергосбережение WLAN — Sony</a>.</p>
+<p><a id="budgets"></a></p>
+<h2>8. Начальные бюджеты проекта</h2>
+<p>Ниже <strong>предлагаемые ориентиры для прототипа</strong>, а не аппаратные гарантии и не измерения уже существующей игры.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>Начальное решение</th>
+<th>Как подтвердить</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Совместимость</td>
+<td>PSP-1000 как минимальная модель</td>
+<td>Запуск релизной сборки на Fat без расширенной памяти</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>Проектировать пиковое использование приложения в пределах примерно 20 МиБ, включая резерв</td>
+<td>Учитывать code/data/bss, heap, стеки, модули и пики загрузки; при меньшей доступной памяти уменьшать бюджет</td>
+</tr>
+<tr>
+<td>VRAM</td>
+<td>Не более фактически доступных 2 МиБ в базовом режиме</td>
+<td>Считать framebuffer, depth, textures, alignment и render targets</td>
+</tr>
+<tr>
+<td>FPS</td>
+<td>60 для подходящего 2D/простого 3D либо стабильные 30 для более тяжёлой игры</td>
+<td>Время кадра на худшей сцене, включая streaming и звук</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>Проверить 222 и 333 МГц; явно указать нужный режим</td>
+<td>Замеры на устройстве, затем выбор качества и частоты</td>
+</tr>
+<tr>
+<td>Текстуры</td>
+<td>Основные размеры 64–256; 512 по необходимости</td>
+<td>Проверка памяти, палитр, качества и sampling</td>
+</tr>
+<tr>
+<td>Уровень</td>
+<td>В памяти только необходимая рабочая часть</td>
+<td>Длительный переход между уровнями без роста расхода памяти</td>
+</tr>
+<tr>
+<td>Звук</td>
+<td>Один музыкальный поток и измеряемый лимит эффектов</td>
+<td>Отсутствие underrun одновременно с худшей сценой</td>
+</tr>
+</tbody></table></div>
+<p>Пример распределения <strong>20 МиБ</strong> для небольшой игры:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Категория</th>
+<th align="right">Предварительный бюджет</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Исполняемый код, библиотеки, постоянные данные</td>
+<td align="right">3 МиБ</td>
+</tr>
+<tr>
+<td>Уровень, объекты, столкновения и игровое состояние</td>
+<td align="right">4 МиБ</td>
+</tr>
+<tr>
+<td>Текстуры и геометрия в основной RAM</td>
+<td align="right">5 МиБ</td>
+</tr>
+<tr>
+<td>Аудиоданные и рабочие буферы</td>
+<td align="right">1 МиБ</td>
+</tr>
+<tr>
+<td>Временная загрузка и декодирование ресурсов</td>
+<td align="right">2 МиБ</td>
+</tr>
+<tr>
+<td>Стеки, списки команд и прочие рабочие буферы</td>
+<td align="right">1 МиБ</td>
+</tr>
+<tr>
+<td>Резерв внутри бюджета на неизвестные пики и фрагментацию</td>
+<td align="right">4 МиБ</td>
+</tr>
+<tr>
+<td><strong>Всего</strong></td>
+<td align="right"><strong>20 МиБ</strong></td>
+</tr>
+</tbody></table></div>
+<p>RAM и VRAM считать раздельно. Если одна текстура хранится и в RAM, и в VRAM, это две копии. Распаковка PNG, смена уровня и создание нового сохранения могут давать больший пик, чем обычный игровой кадр. После подключения реальных библиотек эти числа заменить замерами; крупная зависимость может потребовать перераспределения всего бюджета.</p>
+<p><a id="debug"></a></p>
+<h2>9. Отладка и измерение производительности</h2>
+<h3>9.1. PPSSPP — быстрый цикл проверки</h3>
+<p>Использовать актуальный PPSSPP, держать ELF с символами рядом с <code>EBOOT.PBP</code> или PRX: отладчик может читать из него имена и строки исходников. Для базовой проверки выбрать родное разрешение 1×, выключить улучшения текстур и frame skip, зафиксировать модель/память и частоту эмулируемой PSP. <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/homebrew-development/">Рекомендации разработчикам homebrew</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/developer-tools/">developer tools</a>.</p>
+<p><strong>Ограничение достоверности:</strong> PPSSPP не воспроизводит CPU-кэши как настоящая PSP, системные API в значительной мере моделируются; различаются отдельные аспекты звука, цветов и шрифтов. Поэтому ошибки cache writeback, последовательности вызовов и timing могут проявиться только на устройстве. FPS в эмуляторе не является доказательством того же FPS на PSP. <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/known-differences/">Известные отличия</a>.</p>
+<h3>9.2. PSPLINK и GDB на устройстве</h3>
+<p>На PSP запускается PSPLINK; на компьютере работают <code>usbhostfs_pc</code> и <code>pspsh</code>. Приложение для этой схемы собирается как <strong>незашифрованный PRX</strong>, например с <code>BUILD_PRX=1</code>; символы сохраняются в соответствующем ELF. PSPLINK позволяет запускать его с компьютера, получать диагностику и подключать <code>psp-gdb</code>. Для crash-адреса используется <code>psp-addr2line</code> с ELF той же сборки. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/debugging.html">Порядок отладки PSPDEV</a>.</p>
+<p>На Windows для PSPLINK нужны USB-драйвер и отдельная настройка; руководство PSPDEV указывает Zadig и <strong>PSP Type B</strong>. Для доступа из WSL также используется <code>usbipd-win</code>. USB mass storage и интерфейс PSPLINK — разные режимы: не следует менять драйвер произвольного накопителя. Точный порядок сверять с <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/psplink/windows.html">инструкцией Windows/WSL</a>.</p>
+<h3>9.3. Что измерять</h3>
+<p>Встроить в игру компактный debug overlay или лог:</p>
+<ul>
+<li>время кадра и максимальные задержки на стрессовых участках;</li>
+<li>CPU update, подготовку рендеринга, ожидание GPU/VBlank и I/O;</li>
+<li>текущую и пиковую RAM/VRAM, свободное место heap и отказы выделения;</li>
+<li>число видимых объектов, вызовов отрисовки, вершин/треугольников;</li>
+<li>число аудиоголосов и случаи нехватки аудиоданных;</li>
+<li>время старта, загрузки уровня и сохранения.</li>
+</ul>
+<p>CPU-профилирование доступно через <code>psp-gprof</code>: для инструментированной сборки используются <code>-pg</code> и <code>-g</code>. Профайлер меняет нагрузку, поэтому окончательное время кадра перепроверять в обычной релизной сборке. <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/debugging.html">Профилирование PSPDEV</a>.</p>
+<p><a id="workflow"></a></p>
+<h2>10. Процесс разработки и проверка релиза</h2>
+<h3>10.1. Последовательность работ</h3>
+<ol>
+<li><strong>Зафиксировать платформу:</strong> модели, firmware/loader, C или C++, GU либо SDL, разрешение, 30/60 FPS, носитель, необходимость сети.</li>
+<li><strong>Проверить сборку:</strong> Hello World → EBOOT → PPSSPP → реальная PSP; сохранить версии окружения.</li>
+<li><strong>Собрать технический прототип:</strong> ввод, рендеринг, звук, загрузка ресурса, сохранение, выход и сон.</li>
+<li><strong>Сделать стрессовую сцену:</strong> максимальная планируемая сложность, прозрачность, музыка и одновременное чтение данных.</li>
+<li><strong>Установить реальные бюджеты:</strong> качество, память, геометрию и лимиты объектов по результатам замеров.</li>
+<li><strong>Автоматизировать подготовку ресурсов:</strong> проверять размер и формат до попадания данных на консоль.</li>
+<li><strong>Создать небольшой законченный фрагмент игры:</strong> начало, игровой цикл, победа/поражение и сохранение. Только после этого наращивать контент.</li>
+<li><strong>Проверить релиз отдельно от отладки:</strong> чистая папка установки, release-сборка, реальные ресурсы и заявленная матрица устройств.</li>
+</ol>
+<h3>10.2. Приёмочный список</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Проверка</th>
+<th>Критерий готовности</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Чистый старт</td>
+<td>Игра запускается после полного выключения консоли с опубликованным способом установки</td>
+</tr>
+<tr>
+<td>Память</td>
+<td>Худший уровень, переходы и повторные загрузки не дают OOM и накопительного роста</td>
+</tr>
+<tr>
+<td>Производительность</td>
+<td>Выбранный режим 30/60 FPS выдерживается на минимальной поддерживаемой модели</td>
+</tr>
+<tr>
+<td>Графика</td>
+<td>Нет исчезающих полигонов, повреждения текстур, мерцания глубины; текст читаем в 480 × 272</td>
+</tr>
+<tr>
+<td>Управление</td>
+<td>Всё необходимое доступно с одного стика и штатных кнопок</td>
+</tr>
+<tr>
+<td>Звук</td>
+<td>Нет срывов при загрузке, на паузе и после сна; информация различима на моно-динамике, если поддерживается Street</td>
+</tr>
+<tr>
+<td>Жизненный цикл</td>
+<td>HOME, сон/пробуждение, повторный вход и возврат из системных диалогов работают</td>
+</tr>
+<tr>
+<td>Сохранения</td>
+<td>Проверены полный носитель, повреждённый файл, первая запись и обновление версии формата</td>
+</tr>
+<tr>
+<td>Пути</td>
+<td>Go запускается со встроенного накопителя; приложение не зависит от отладочной папки ПК</td>
+</tr>
+<tr>
+<td>Сеть, если есть</td>
+<td>Проверены два физических устройства, разрыв соединения, таймауты и offline-сценарий</td>
+</tr>
+<tr>
+<td>Дистрибутив</td>
+<td>В архиве есть EBOOT, необходимые данные, инструкция и лицензии; нет обязательных файлов только на машине автора</td>
+</tr>
+</tbody></table></div>
+<p>Для воспроизводимого баг-репорта записывать модель PSP, firmware/CFW, способ запуска, частоты, версию SDK/игры, носитель и точные шаги воспроизведения.</p>
+<h3>10.3. Комплект выпуска</h3>
+<p>Подготовить папку игры, README с моделями/прошивками и установкой, управление, известные ограничения, сведения о сохранениях и лицензии зависимостей/ресурсов. ELF с символами хранить у разработчика с привязкой к версии. Не включать в игру закрытый SDK, чужие игры или системные ресурсы Sony без соответствующих прав.</p>
+<p>У PSPSDK указана BSD-совместимая лицензия с отдельным GPLv3-исключением для инструментов в <code>tools/PrxEncrypter</code>. Лицензии компилятора, используемых библиотек, шрифтов, графики и музыки надо учитывать по отдельности: название «homebrew» не заменяет проверку лицензий. <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspsdk#license">Лицензирование PSPSDK</a>.</p>
+<p><a id="risks"></a></p>
+<h2>11. Типичные ошибки и открытые решения</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Ошибочное предположение</th>
+<th>Корректное решение</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>«У PSP 64 МБ, можно занять их все»</td>
+<td>Задать минимальную модель, режим памяти и измерить фактический бюджет приложения</td>
+</tr>
+<tr>
+<td>«4 МБ eDRAM в спецификации — это 4 МБ VRAM для любой PSP»</td>
+<td>Базово считать 2 МиБ; расширение проверять через API и на нужной модели</td>
+</tr>
+<tr>
+<td>«В PPSSPP работает — на PSP тоже будет»</td>
+<td>Рано включить аппаратные тесты, особенно cache/DMA, audio и suspend</td>
+</tr>
+<tr>
+<td>«Маленький PNG почти не расходует память»</td>
+<td>Считать декодированную текстуру, временный буфер и возможную вторую копию</td>
+</tr>
+<tr>
+<td>«Есть восемь аудиоканалов — значит максимум восемь звуков»</td>
+<td>Различать аппаратный вывод и программный микшер</td>
+</tr>
+<tr>
+<td>«Для графики достаточно уложиться в число полигонов»</td>
+<td>Измерять весь кадр, overdraw, state changes, материалы и CPU</td>
+</tr>
+<tr>
+<td>«Восемь bone matrices означают максимум восемь костей персонажа»</td>
+<td>Разбивать mesh по палитрам костей и учитывать стоимость дополнительных batches</td>
+</tr>
+<tr>
+<td>«Код на <code>double</code> дешевле оптимизации»</td>
+<td>На горячих участках использовать <code>float</code>, проверять компиляторные предупреждения</td>
+</tr>
+<tr>
+<td>«На всех моделях есть сеть»</td>
+<td>Street работает без Wi-Fi; сеть и Bluetooth объявлять отдельными возможностями</td>
+</tr>
+<tr>
+<td>«Любой современный роутер и HTTPS подойдут»</td>
+<td>Проверить точку доступа, криптографические протоколы и конкретный сервер</td>
+</tr>
+<tr>
+<td>«PSP-2000+ обязательно существенно быстрее CPU»</td>
+<td>Большее количество RAM не даёт пропорционального ускорения основного процессора</td>
+</tr>
+</tbody></table></div>
+<p>До начала полноценной игры остаётся выбрать жанр и 2D/3D, минимальную модель, целевой FPS, способ запуска, необходимость сети и видео. Эти решения определяют архитектуру сильнее, чем выбор редактора кода. При отсутствии дополнительных требований рабочая исходная конфигурация — <strong>C++ + PSPSDK GU/GUM, WSL2, CMake, PPSSPP, PSP-1000, offline, бюджет около 20 МиБ RAM и 2 МиБ VRAM с последующей проверкой замерами</strong>.</p>
+<p><a id="sources"></a></p>
+<h2>12. Источники и степень уверенности</h2>
+<p>Характеристики проверялись по Sony/PlayStation; инструменты и API — по документации и исходникам PSPDEV; особенности эмуляции — по материалам разработчиков PPSSPP. Расчёты памяти и предложенные бюджеты выполнены для этого отчёта. Исследовательская документация оборудования не является гарантией Sony; пограничное поведение подтверждается на устройстве.</p>
+<h3>Основные точки входа</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Тема</th>
+<th>Источник</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SDK и поддерживаемая среда</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/">PSPDEV</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspdev">репозиторий комплекта</a></td>
+</tr>
+<tr>
+<td>Проверенная версия комплекта</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/pspdev/pspdev/releases/tag/v20261001">PSPDEV v20261001</a></td>
+</tr>
+<tr>
+<td>Установка Windows/WSL</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/installation/windows.html">Windows</a></td>
+</tr>
+<tr>
+<td>Сборка в контейнере</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/installation/docker.html">Docker</a></td>
+</tr>
+<tr>
+<td>Первый проект и системные примеры</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/how_to_use.html">How to Use</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/basic_programs.html">Basic Programs</a></td>
+</tr>
+<tr>
+<td>Интерфейсы консоли</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/pspsdk/">Справочник PSPSDK</a></td>
+</tr>
+<tr>
+<td>Сторонние библиотеки</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/psp-packages/">Каталог psp-packages</a></td>
+</tr>
+<tr>
+<td>Отладка устройства</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/debugging.html">PSPLINK/GDB/gprof</a>, <a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/psplink/windows.html">USB на Windows</a></td>
+</tr>
+<tr>
+<td>Эмулятор и его ограничения</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/homebrew-development/">Homebrew в PPSSPP</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/development/known-differences/">Known differences</a></td>
+</tr>
+<tr>
+<td>Архитектура CPU и GPU</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/psp-hardware/cpu/allegrex-overview/">Allegrex</a>, <a target="_blank" rel="noopener noreferrer" href="https://www.ppsspp.org/docs/psp-hardware/gpu/ge-overview/">GE</a></td>
+</tr>
+<tr>
+<td>Дополнительные исследования</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://pspdev.github.io/vfpu-docs/">VFPU</a>, <a target="_blank" rel="noopener noreferrer" href="https://uofw.github.io/upspd/docs/">коллекция uOFW</a></td>
+</tr>
+<tr>
+<td>Состояние CFW</td>
+<td><a target="_blank" rel="noopener noreferrer" href="https://github.com/PSP-Arkfive/ARK-5">ARK-5</a>, <a target="_blank" rel="noopener noreferrer" href="https://github.com/PSP-Arkfive/FasterARK">FasterARK</a></td>
+</tr>
+</tbody></table></div>
+<p><strong>Что ещё требует практической проверки:</strong> установленная среда Windows/WSL и USB-драйверы конкретного ПК; свободная память конкретной firmware/CFW; доступность расширенной eDRAM; скорость носителей; производительность выбранного рендерера; совместимость нужных кодеков и сети. Эти параметры намеренно не представлены как уже измеренные.</p>
+<footer>Подготовлено по документации Sony/PlayStation, PSPDEV и PPSSPP. Источники указаны рядом с утверждениями. <a href="PSP_DEVELOPMENT_REPORT_RU.md">Исходный отчёт в Markdown</a>.</footer></main></div>
+</body></html>
