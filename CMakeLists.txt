@@ -27,10 +27,18 @@ target_compile_options(pcclub_options INTERFACE
     $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions -fno-rtti>)
 target_include_directories(pcclub_options INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# --- core: чистый C++, без платформенных зависимостей. Пока только заголовки-контракты (T020);
-# реализацию добавит T022.
-add_library(pcclub_core INTERFACE)
-target_include_directories(pcclub_core INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+# --- core: чистый C++, без платформенных зависимостей (контракт — T020, реализация — T022).
+add_library(pcclub_core STATIC
+    src/core/formulas.cpp
+    src/core/data.cpp
+    src/core/world.cpp
+    src/core/visitors.cpp
+    src/core/pcs.cpp
+    src/core/commands.cpp
+    src/core/conditions.cpp
+    src/core/hooks_stub.cpp)
+target_include_directories(pcclub_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(pcclub_core PRIVATE pcclub_options)
 
 # --- Платформа, рендер, игра. OBJECT-библиотеки: на PSP объекты должны попасть в исполняемый
 # файл целиком (PSP_MODULE_INFO не вызывается из кода, статическая библиотека его бы выкинула).
@@ -81,7 +89,8 @@ else()
         add_executable(pcclub_tests
             tests/test_main.cpp
             tests/core/test_math.cpp
-            tests/core/test_contract.cpp)
+            tests/core/test_contract.cpp
+            tests/core/test_sim_run.cpp)
         target_compile_options(pcclub_tests PRIVATE -Wall -Wextra)
         target_link_libraries(pcclub_tests PRIVATE pcclub_core doctest::doctest)
         add_test(NAME pcclub_tests COMMAND pcclub_tests)
