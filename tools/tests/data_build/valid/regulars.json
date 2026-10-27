@@ -1,0 +1,16 @@
+[
+  {
+    "id": "dimon",
+    "name": "regular.dimon.name",
+    "nick": "Димон_2002",
+    "archetype": "school",
+    "model": "npc_teen",
+    "palette": 2,
+    "fav_game": "test_game",
+    "fav_minigame": "snake",
+    "skill": 0.85,
+    "unlock": [{"var": "visits_archetype:school", "op": ">=", "val": 20}],
+    "traits": ["competitive", "loud"],
+    "event_pool": ["license_check"]
+  }
+]

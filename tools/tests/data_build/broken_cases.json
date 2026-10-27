@@ -1,0 +1,10 @@
+[
+  {"name":"invalid_id", "file":"games.json", "path":[0,"id"], "value":"Bad-ID", "id":"Bad-ID", "field":"id", "error":"неверный id"},
+  {"name":"duplicate", "file":"games.json", "append_copy":0, "id":"test_game", "field":"id", "error":"дубликат"},
+  {"name":"broken_reference", "file":"games.json", "path":[0,"minigame"], "value":"missing", "id":"test_game", "field":"minigame", "error":"битая ссылка"},
+  {"name":"missing_string", "file":"games.json", "path":[0,"title"], "value":"missing", "id":"test_game", "field":"title", "error":"нет строки"},
+  {"name":"range", "file":"games.json", "path":[0,"req","cpu"], "value":-1, "id":"test_game", "field":"req.cpu", "error":"диапазоне"},
+  {"name":"unknown_field", "file":"games.json", "path":[0,"req","cpz"], "value":40, "id":"test_game", "field":"req.cpz", "error":"неизвестное поле"},
+  {"name":"enum", "file":"games.json", "path":[0,"genre"], "value":"not_a_genre", "id":"test_game", "field":"genre", "error":"enum"},
+  {"name":"limit", "file":"archetypes.json", "path":[0,"models"], "value":["a","b","c","d","e"], "id":"school", "field":"models", "error":"лимит"}
+]
