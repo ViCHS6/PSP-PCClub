@@ -701,6 +701,51 @@ Competitor  { active, rep, perf, lib, price }
 
 Посетители, находящиеся в клубе, **не сохраняются**: сохранение возможно утром до открытия и автоматически в момент закрытия.
 
+### 8.9. Буфет, апгрейды, мини-игры, стартовая экономика
+
+Числа баланса из §6.6, §7.11, §7.13, §7.14 и стартовые значения — тоже данные. Точная раскладка и проверки — [docs/formats/data_pak.md](docs/formats/data_pak.md).
+
+**`data/goods.csv`** — товары буфета (§7.13). `weight` — как часто голодный посетитель просит именно этот товар.
+
+```csv
+id,name,buy_price,sell_price,weight
+noodles,goods.noodles.name,10,15,1.0
+soda,goods.soda.name,8,12,1.2
+```
+
+**`data/upgrades.csv`** — всё, что покупается для клуба: зал, интернет, сеть, кондиционер, реклама, ночной тариф, персонал. Покупка более высокого `level` того же `kind` заменяет прежний. Регулярные расходы §7.14 — в `cost_month` / `cost_day` / `cost_hour` / `cost_minute`.
+
+```csv
+id,kind,name,level,archetype,requires,days,price,cost_month,cost_day,cost_hour,cost_minute,value
+hall_6,hall,upg.hall_6.name,1,,,,0,12000,,,,6
+inet_dialup,internet,upg.inet_dialup.name,1,,,,0,,,,0.5,56
+inet_64,internet,upg.inet_64.name,2,,,,3000,4000,,,,64
+flyers_school,ad,upg.flyers_school.name,,school,,14,500,,,,,0.3
+```
+
+**`data/minigames.json`** — играбельные мини-игры (§6.4, §7.11). Код мини-игры находится по `id`.
+
+```json
+{ "id": "snake", "name": "mg.snake.name", "score_scale": 300, "invert": false, "where": ["admin", "visitors"] }
+```
+
+**`data/economy.json`** — старт новой игры и ставки расходов.
+
+```json
+{
+  "start_money": 20000, "start_rep": 30, "start_price_hour": 20, "start_price_night": 100,
+  "tax_rate": 0.06, "electricity_price": 1.2, "loan_rate_week": 0.10,
+  "debt_limit": 30000, "debt_days_to_lose": 14,
+  "start_upgrades": ["hall_6", "inet_64"],
+  "start_pcs": 6,
+  "start_pc": { "cpu": "cpu_p3_800", "gpu": "gpu_gf2mx", "ram": "ram_128", "hdd": "hdd_20g",
+                "psu": "psu_250", "monitor": "mon_crt17", "mouse": "mouse_ball",
+                "keyboard": "kbd_basic", "chair": "chair_office" }
+}
+```
+
+Значения в примерах — ориентиры, окончательные подбираются в T026/T027.
+
 ---
 
 ## 9. Интерфейс и управление

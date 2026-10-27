@@ -27,7 +27,8 @@ target_compile_options(pcclub_options INTERFACE
     $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions -fno-rtti>)
 target_include_directories(pcclub_options INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# --- core: чистый C++, без платформенных зависимостей. Пока только заголовки (T020 добавит код).
+# --- core: чистый C++, без платформенных зависимостей. Пока только заголовки-контракты (T020);
+# реализацию добавит T022.
 add_library(pcclub_core INTERFACE)
 target_include_directories(pcclub_core INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -77,7 +78,10 @@ else()
         FetchContent_MakeAvailable(doctest)
 
         enable_testing()
-        add_executable(pcclub_tests tests/test_main.cpp tests/core/test_math.cpp)
+        add_executable(pcclub_tests
+            tests/test_main.cpp
+            tests/core/test_math.cpp
+            tests/core/test_contract.cpp)
         target_compile_options(pcclub_tests PRIVATE -Wall -Wextra)
         target_link_libraries(pcclub_tests PRIVATE pcclub_core doctest::doctest)
         add_test(NAME pcclub_tests COMMAND pcclub_tests)
