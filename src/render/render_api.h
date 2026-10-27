@@ -1,8 +1,8 @@
 #pragma once
 // КОНТРАКТ (T001). Рендер: один интерфейс для PSP (GU) и PC (OpenGL 2.1).
 // Реализации: render_psp.cpp, render_pc.cpp; общее — render_common.cpp.
-// Менять — только задачей «меняет контракт» (ожидаемо: T011/T012 — форматы вершин
-// и текстур с палитрой, T030 — шрифты UI).
+// Менять — только задачей «меняет контракт» (T012 добавил загрузку .msh/.tex;
+// ожидаемо: T030 — шрифты UI).
 //
 // Модель памяти: ресурсы создаются при загрузке, данные КОПИРУЮТСЯ во внутренние арены
 // фиксированного размера (Config). Исходные буферы после вызова можно освободить.
@@ -55,6 +55,8 @@ struct Config {
     size_t texture_arena_bytes = 1024 * 1024; // пиксели всех текстур (основная RAM)
     uint16_t max_meshes = 256;
     uint16_t max_textures = 128;
+    uint16_t max_models = 128;     // моделей из .msh (T012)
+    uint16_t max_submeshes = 512;  // подсетов всех моделей вместе
 };
 
 // Вызывать после platform::init(). false — фатальная ошибка.
@@ -77,6 +79,50 @@ enum class TextureFormat : uint8_t {
 TextureId texture_create(int width, int height, TextureFormat format, const void* pixels);
 
 // ---------------------------------------------------------------------------
+// Ресурсы из файлов (T012). Форматы: docs/formats/texture.md (TEX1), docs/formats/mesh.md (MSH1).
+//
+// Файл проверяется целиком по разделу «Проверки/Валидация загрузчиком» своего формата ДО
+// выделения памяти. Ошибка — строка в stderr (имя/путь и причина) и kNoTexture / kInvalidModel;
+// арены при этом не тратятся. Данные копируются во внутренние арены: PSP хранит их как в файле
+// (packed-вершины, CLUT, swizzle идут в GE напрямую), PC раскрывает в Vertex / RGBA8888.
+// Исходный буфер после вызова можно освободить. Вызывать только при загрузке, не в кадре.
+//
+//     render::texture_load_file("assets/tex_crt.tex");          // сначала текстуры,
+//     const render::ModelId crt = render::model_load_file("assets/prop_crt17.msh");  // потом модели
+//     ...
+//     render::draw_model(crt, core::mat4_translate({1, 0.75f, 0}));
+
+// name — id текстуры: ASCII 1..31 байт, обычно имя файла без расширения. По нему подсеты .msh
+// находят свою текстуру. Имя уже занято — kNoTexture.
+TextureId texture_load_tex(const char* name, const void* data, size_t size);
+
+// Загруженная текстура по id; kNoTexture — нет такой.
+TextureId texture_find(const char* name);
+
+// Число кадров многокадровой TEX1 (экраны мониторов). У текстур из texture_create — 1.
+uint16_t texture_frame_count(TextureId texture);
+
+// Кадр для всех следующих отрисовок с этой текстурой. frame ≥ count — последний кадр.
+// Без аллокаций, можно вызывать в кадре.
+void texture_set_frame(TextureId texture, uint16_t frame);
+
+using ModelId = uint16_t;
+constexpr ModelId kInvalidModel = 0xFFFF;
+
+// Модель из .msh. Текстуры подсетов разрешаются через texture_find В МОМЕНТ ЗАГРУЗКИ —
+// поэтому текстуры грузят раньше моделей. Неизвестный id — подсет рисуется без текстуры
+// (цвета вершин), в stderr предупреждение; модель при этом загружается.
+ModelId model_load_msh(const void* data, size_t size);
+
+// Обёртки над platform::file_read: временный буфер выделяется и освобождается внутри вызова.
+// Путь — относительно папки приложения. Имя текстуры — basename пути без расширения.
+TextureId texture_load_file(const char* path);
+ModelId model_load_file(const char* path);
+
+// AABB модели в пространстве объекта (bbox_min/max из заголовка .msh). false — неверный id.
+bool model_bounds(ModelId model, core::Vec3* out_min, core::Vec3* out_max);
+
+// ---------------------------------------------------------------------------
 // Кадр
 
 void begin_frame(Color clear_color);
@@ -87,6 +133,11 @@ void set_camera(const core::Mat4& view, const core::Mat4& projection);
 
 // Тест глубины включён, смешивание выключено, отсечение граней пока выключено.
 void draw_mesh(MeshId mesh, const core::Mat4& model, TextureId texture = kNoTexture);
+
+// Модель из .msh: по вызову отрисовки на подсет (и на каждые 65535 индексов). Состояние — как
+// у draw_mesh; текстуры с прозрачностью (TEX1 flags bit1) рисуются с альфа-тестом (cutout)
+// на обеих платформах. Неверный id — ничего не рисуется.
+void draw_model(ModelId model, const core::Mat4& transform);
 
 // 2D: пиксели экрана 480×272, (0, 0) — левый верхний угол. Без теста глубины,
 // с альфа-смешиванием. Рисуется в порядке вызовов — обычно после всего 3D.
