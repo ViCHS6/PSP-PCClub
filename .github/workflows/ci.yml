@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pc:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ libsdl2-dev git git-lfs
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Build and test PC
+        run: >-
+          cmake -S . -B build/pc -G Ninja -DCMAKE_CXX_FLAGS=-Werror
+          && cmake --build build/pc
+          && ctest --test-dir build/pc --output-on-failure
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: python -m pip install Pillow
+
+      - name: Test Python tools
+        run: python -m unittest discover -s tools/tests
+
+  psp:
+    runs-on: ubuntu-24.04
+    container:
+      image: pspdev/pspdev:v20261001
+    steps:
+      # Git LFS нужен уже при checkout; libstdc++ — для Node.js-действий в Alpine.
+      - name: Install container dependencies
+        run: apk add --no-cache ninja git git-lfs libstdc++
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Build PSP
+        run: >-
+          psp-cmake -S . -B build/psp -G Ninja -DCMAKE_BUILD_TYPE=Release
+          && cmake --build build/psp
+
+      - name: Upload EBOOT.PBP
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcclub-psp
+          path: build/psp/EBOOT.PBP
+          if-no-files-found: error
