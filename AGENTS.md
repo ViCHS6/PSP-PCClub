@@ -44,22 +44,27 @@ build/          артефакты сборки — не коммитить
 
 ## Сборка и проверки
 
-> Команды появятся в задаче T001. До неё раздел — план.
+Всё собирается в **WSL (Ubuntu 24.04)** из корня проекта. Цель определяет тулчейн: `psp-cmake` — PSP, обычный `cmake` — PC. Нужны: PSPDEV (`$PSPDEV`, `psp-cmake` в `PATH`), `cmake`, `ninja-build`, `g++`, `libsdl2-dev`, `python3-pil`.
 
 ```bash
-# PC-сборка (симуляция, тесты, отладка мини-игр)
-cmake -S . -B build/pc -DTARGET=pc && cmake --build build/pc -j
+# PC-сборка (отладка, тесты; позже — balance-runner)
+cmake -S . -B build/pc -G Ninja && cmake --build build/pc
 ctest --test-dir build/pc --output-on-failure
 
-# PSP-сборка (EBOOT.PBP)
-psp-cmake -S . -B build/psp -DTARGET=psp && cmake --build build/psp -j
+# Запуск PC-версии с автоматическим снимком экрана (окно через WSLg)
+build/pc/pcclub --frames 90 --screenshot build/pc/shot.bmp
 
-# Данные
-python tools/build_data.py data/ -o build/data.pak
+# PSP-сборка → build/psp/EBOOT.PBP
+psp-cmake -S . -B build/psp -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build build/psp
 
-# Баланс
+# Данные (появится в T021)
+python3 tools/build_data.py data/ -o build/data.pak
+
+# Баланс (появится в T025)
 build/pc/balance-runner --days 90 --seed 1 --strategy normal --out build/balance.csv
 ```
+
+**Проверка на PSP:** открыть `build/psp/EBOOT.PBP` в PPSSPP; на PSP Go — скопировать в `PSP/GAME/PCCLUB/`. Отладочный оверлей (SELECT) показывает FPS, кучу и её пик, арены рендера и VRAM.
 
 **Перед сдачей задачи обязательно:**
 
