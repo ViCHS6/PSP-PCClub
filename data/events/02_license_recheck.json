@@ -1,0 +1,23 @@
+{
+  "id": "license_recheck",
+  "category": "crisis",
+  "trigger": { "type": "scheduled" },
+  "present": { "kind": "visitor", "model": "npc_inspector", "text": "ev.license_recheck.intro" },
+  "choices": [
+    {
+      "text": "ev.license_recheck.clean",
+      "requires": [{ "var": "pirate_installs", "op": "==", "val": 0 }],
+      "effects": [{ "type": "rep", "val": 1 }]
+    },
+    {
+      "text": "ev.license_recheck.pay",
+      "requires": [{ "var": "pirate_installs", "op": ">", "val": 0 }],
+      "effects": [{ "type": "money", "expr": "-2500 * pirate_installs" }, { "type": "rep", "val": -3 }]
+    },
+    {
+      "text": "ev.license_recheck.purge",
+      "requires": [{ "var": "pirate_installs", "op": ">", "val": 0 }],
+      "effects": [{ "type": "uninstall", "filter": "all" }, { "type": "rep", "val": -2 }]
+    }
+  ]
+}

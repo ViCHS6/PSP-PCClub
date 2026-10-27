@@ -1,0 +1,32 @@
+{
+  "id": "license_check",
+  "category": "crisis",
+  "trigger": { "type": "daily_roll", "hour": 11 },
+  "weight": 1.0,
+  "chance": { "base": 0.0, "per": { "pirate_share": 0.03 } },
+  "cooldown_days": 30,
+  "once": false,
+  "conditions": [
+    { "var": "day", "op": ">=", "val": 14 },
+    { "var": "pirate_installs", "op": ">", "val": 0 }
+  ],
+  "present": { "kind": "visitor", "model": "npc_inspector", "text": "ev.license_check.intro" },
+  "choices": [
+    {
+      "text": "ev.license_check.pay_fine",
+      "effects": [{ "type": "money", "expr": "-1500 * pirate_installs" }, { "type": "rep", "val": -2 }]
+    },
+    {
+      "text": "ev.license_check.bribe",
+      "requires": [{ "var": "money", "op": ">=", "val": 3000 }],
+      "effects": [
+        { "type": "money", "val": -3000 },
+        { "type": "chance", "p": 0.2, "then": [{ "type": "schedule_event", "id": "license_recheck", "in_days": 7, "hour": 11 }] }
+      ]
+    },
+    {
+      "text": "ev.license_check.delete_all",
+      "effects": [{ "type": "uninstall", "filter": "pirate" }, { "type": "rep", "val": -1 }]
+    }
+  ]
+}

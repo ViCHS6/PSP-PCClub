@@ -1,0 +1,8 @@
+[
+  { "id": "snake",    "name": "mg.snake.name",    "score_scale": 300,  "invert": false, "where": ["admin", "visitors"] },
+  { "id": "sapper",   "name": "mg.sapper.name",   "score_scale": 120,  "invert": true,  "where": ["admin", "visitors"] },
+  { "id": "bricks",   "name": "mg.bricks.name",   "score_scale": 500,  "invert": false, "where": ["admin", "visitors"] },
+  { "id": "orbital",  "name": "mg.orbital.name",  "score_scale": 800,  "invert": false, "where": ["admin", "visitors"] },
+  { "id": "tetris",   "name": "mg.tetris.name",   "score_scale": 1500, "invert": false, "where": ["admin", "visitors"] },
+  { "id": "labyrinth", "name": "mg.labyrinth.name", "score_scale": 90, "invert": true,  "where": ["admin"] }
+]

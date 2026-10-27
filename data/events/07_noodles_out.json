@@ -1,0 +1,23 @@
+{
+  "id": "noodles_out",
+  "category": "crisis",
+  "trigger": { "type": "on_action", "action": "goods_out" },
+  "cooldown_days": 3,
+  "present": { "kind": "visitor", "model": "npc_teen_b", "text": "ev.noodles_out.intro" },
+  "choices": [
+    {
+      "text": "ev.noodles_out.run_shop",
+      "requires": [{ "var": "money", "op": ">=", "val": 200 }],
+      "effects": [{ "type": "money", "val": -200 }, { "type": "item", "id": "noodles", "count": 20 }]
+    },
+    {
+      "text": "ev.noodles_out.chips",
+      "requires": [{ "var": "money", "op": ">=", "val": 120 }],
+      "effects": [{ "type": "money", "val": -120 }, { "type": "item", "id": "chips", "count": 10 }]
+    },
+    {
+      "text": "ev.noodles_out.no_way",
+      "effects": [{ "type": "rep", "val": -0.5 }]
+    }
+  ]
+}

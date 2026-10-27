@@ -1,0 +1,429 @@
+[
+  {
+    "id": "kontr_udar_13",
+    "title": "games.kontr_udar_13.title",
+    "ref": "Counter-Strike 1.3",
+    "genre": "shooter_team",
+    "release": "2001-06-01",
+    "price_license": 900,
+    "price_pirate": 70,
+    "req": {
+      "cpu": 40,
+      "gpu": 30,
+      "ram": 64,
+      "hdd_mb": 400
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 1.0,
+      "rise_days": 30,
+      "half_life_days": 400,
+      "floor": 0.6
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "tournament",
+      "team",
+      "evergreen"
+    ],
+    "box_tex": "box_ku13"
+  },
+  {
+    "id": "diabloid_2",
+    "title": "games.diabloid_2.title",
+    "ref": "Diablo II: LoD",
+    "genre": "arpg",
+    "release": "2001-07-01",
+    "price_license": 1100,
+    "price_pirate": 80,
+    "req": {
+      "cpu": 30,
+      "gpu": 20,
+      "ram": 64,
+      "hdd_mb": 1200
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.9,
+      "rise_days": 21,
+      "half_life_days": 300,
+      "floor": 0.4
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "evergreen"
+    ],
+    "box_tex": "box_diabloid2"
+  },
+  {
+    "id": "zvezdnoe_remeslo",
+    "title": "games.zvezdnoe_remeslo.title",
+    "ref": "StarCraft: Brood War",
+    "genre": "rts",
+    "release": "2001-01-01",
+    "price_license": 700,
+    "price_pirate": 60,
+    "req": {
+      "cpu": 20,
+      "gpu": 10,
+      "ram": 32,
+      "hdd_mb": 500
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.8,
+      "rise_days": 14,
+      "half_life_days": 500,
+      "floor": 0.5
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "tournament",
+      "evergreen"
+    ],
+    "box_tex": "box_zvremeslo"
+  },
+  {
+    "id": "geroi_kinzhala_3",
+    "title": "games.geroi_kinzhala_3.title",
+    "ref": "Heroes of Might and Magic III",
+    "genre": "tbs",
+    "release": "2001-01-01",
+    "price_license": 600,
+    "price_pirate": 60,
+    "req": {
+      "cpu": 25,
+      "gpu": 15,
+      "ram": 64,
+      "hdd_mb": 600
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.7,
+      "rise_days": 14,
+      "half_life_days": 500,
+      "floor": 0.45
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "evergreen"
+    ],
+    "box_tex": "box_geroi3"
+  },
+  {
+    "id": "maksimalnaya_bol",
+    "title": "games.maksimalnaya_bol.title",
+    "ref": "Max Payne",
+    "genre": "shooter_3p",
+    "release": "2001-07-01",
+    "price_license": 1000,
+    "price_pirate": 70,
+    "req": {
+      "cpu": 55,
+      "gpu": 45,
+      "ram": 128,
+      "hdd_mb": 1400
+    },
+    "net": "none",
+    "pop": {
+      "peak": 0.7,
+      "rise_days": 10,
+      "half_life_days": 60,
+      "floor": 0.1
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "adult"
+    ],
+    "box_tex": "box_maxbol"
+  },
+  {
+    "id": "zemletryas_3",
+    "title": "games.zemletryas_3.title",
+    "ref": "Quake III Arena",
+    "genre": "shooter_arena",
+    "release": "2001-01-01",
+    "price_license": 800,
+    "price_pirate": 60,
+    "req": {
+      "cpu": 45,
+      "gpu": 40,
+      "ram": 64,
+      "hdd_mb": 500
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.8,
+      "rise_days": 14,
+      "half_life_days": 250,
+      "floor": 0.4
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "tournament",
+      "team"
+    ],
+    "box_tex": "box_zemletryas3"
+  },
+  {
+    "id": "yastreb_shturmovik",
+    "title": "games.yastreb_shturmovik.title",
+    "ref": "Ил-2 Штурмовик",
+    "genre": "sim",
+    "release": "2001-11-01",
+    "price_license": 900,
+    "price_pirate": 70,
+    "req": {
+      "cpu": 60,
+      "gpu": 55,
+      "ram": 128,
+      "hdd_mb": 1500
+    },
+    "net": "none",
+    "pop": {
+      "peak": 0.6,
+      "rise_days": 21,
+      "half_life_days": 120,
+      "floor": 0.2
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "adult"
+    ],
+    "box_tex": "box_yastreb"
+  },
+  {
+    "id": "getmany",
+    "title": "games.getmany.title",
+    "ref": "Казаки",
+    "genre": "rts",
+    "release": "2001-01-01",
+    "price_license": 700,
+    "price_pirate": 60,
+    "req": {
+      "cpu": 30,
+      "gpu": 15,
+      "ram": 64,
+      "hdd_mb": 600
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.6,
+      "rise_days": 14,
+      "half_life_days": 300,
+      "floor": 0.3
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "tournament"
+    ],
+    "box_tex": "box_getmany"
+  },
+  {
+    "id": "gorod_porokov",
+    "title": "games.gorod_porokov.title",
+    "ref": "GTA: Vice City",
+    "genre": "action",
+    "release": "2003-05-01",
+    "price_license": 1200,
+    "price_pirate": 80,
+    "req": {
+      "cpu": 90,
+      "gpu": 80,
+      "ram": 256,
+      "hdd_mb": 3500
+    },
+    "net": "none",
+    "pop": {
+      "peak": 1.0,
+      "rise_days": 14,
+      "half_life_days": 200,
+      "floor": 0.3
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "adult"
+    ],
+    "box_tex": "box_gorod"
+  },
+  {
+    "id": "boevoe_remeslo_3",
+    "title": "games.boevoe_remeslo_3.title",
+    "ref": "Warcraft III",
+    "genre": "rts",
+    "release": "2002-07-01",
+    "price_license": 1100,
+    "price_pirate": 80,
+    "req": {
+      "cpu": 70,
+      "gpu": 60,
+      "ram": 128,
+      "hdd_mb": 1800
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 1.0,
+      "rise_days": 30,
+      "half_life_days": 400,
+      "floor": 0.5
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "tournament",
+      "evergreen"
+    ],
+    "box_tex": "box_boevoe3"
+  },
+  {
+    "id": "lineyka_2",
+    "title": "games.lineyka_2.title",
+    "ref": "Lineage II",
+    "genre": "mmo",
+    "release": "2004-04-01",
+    "price_license": 1500,
+    "price_pirate": 90,
+    "req": {
+      "cpu": 110,
+      "gpu": 100,
+      "ram": 256,
+      "hdd_mb": 4500
+    },
+    "net": "online_high",
+    "pop": {
+      "peak": 1.0,
+      "rise_days": 60,
+      "half_life_days": 500,
+      "floor": 0.5
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "adult"
+    ],
+    "box_tex": "box_lineyka2"
+  },
+  {
+    "id": "orbitalny_patrul",
+    "title": "games.orbitalny_patrul.title",
+    "ref": "Asteroids",
+    "genre": "minigame",
+    "release": "2001-01-01",
+    "price_license": 150,
+    "price_pirate": 50,
+    "req": {
+      "cpu": 5,
+      "gpu": 5,
+      "ram": 16,
+      "hdd_mb": 5
+    },
+    "net": "none",
+    "pop": {
+      "peak": 0.5,
+      "rise_days": 7,
+      "half_life_days": 200,
+      "floor": 0.3
+    },
+    "minigame": "orbital",
+    "score_scale": 800,
+    "tags": [
+      "kids"
+    ],
+    "box_tex": "box_orbital"
+  },
+  {
+    "id": "tetris_klassik",
+    "title": "games.tetris_klassik.title",
+    "ref": "Tetris",
+    "genre": "minigame",
+    "release": "2001-01-01",
+    "price_license": 150,
+    "price_pirate": 50,
+    "req": {
+      "cpu": 3,
+      "gpu": 3,
+      "ram": 8,
+      "hdd_mb": 2
+    },
+    "net": "none",
+    "pop": {
+      "peak": 0.6,
+      "rise_days": 7,
+      "half_life_days": 2000,
+      "floor": 0.5
+    },
+    "minigame": "tetris",
+    "score_scale": 1500,
+    "tags": [
+      "kids",
+      "evergreen"
+    ],
+    "box_tex": "box_tetris"
+  },
+  {
+    "id": "zhazhda_skorosti",
+    "title": "games.zhazhda_skorosti.title",
+    "ref": "Need for Speed",
+    "genre": "race",
+    "release": "2001-01-01",
+    "price_license": 800,
+    "price_pirate": 60,
+    "req": {
+      "cpu": 40,
+      "gpu": 35,
+      "ram": 64,
+      "hdd_mb": 700
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.6,
+      "rise_days": 14,
+      "half_life_days": 150,
+      "floor": 0.2
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "kids"
+    ],
+    "box_tex": "box_zhazhda"
+  },
+  {
+    "id": "futbol_2002",
+    "title": "games.futbol_2002.title",
+    "ref": "FIFA Football 2002",
+    "genre": "sport",
+    "release": "2001-10-01",
+    "price_license": 800,
+    "price_pirate": 60,
+    "req": {
+      "cpu": 35,
+      "gpu": 25,
+      "ram": 64,
+      "hdd_mb": 600
+    },
+    "net": "lan",
+    "pop": {
+      "peak": 0.6,
+      "rise_days": 10,
+      "half_life_days": 100,
+      "floor": 0.15
+    },
+    "minigame": null,
+    "score_scale": 0,
+    "tags": [
+      "kids",
+      "team"
+    ],
+    "box_tex": "box_futbol02"
+  }
+]

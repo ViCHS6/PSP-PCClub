@@ -1,0 +1,30 @@
+{
+  "id": "power_outage",
+  "category": "crisis",
+  "trigger": { "type": "daily_roll", "hour": 17 },
+  "weight": 1.0,
+  "chance": { "base": 0.02 },
+  "cooldown_days": 20,
+  "conditions": [
+    { "var": "day", "op": ">=", "val": 5 }
+  ],
+  "present": { "kind": "world", "text": "ev.power_outage.intro" },
+  "choices": [
+    {
+      "text": "ev.power_outage.breaker",
+      "effects": [
+        { "type": "start_minigame", "id": "reboot" },
+        { "type": "chance", "p": 0.3, "then": [{ "type": "damage_pc", "pc": "random", "component": "psu" }] }
+      ]
+    },
+    {
+      "text": "ev.power_outage.wait",
+      "effects": [{ "type": "modifier", "target": "arrivals", "mult": 0.7, "days": 1 }, { "type": "rep", "val": -1 }]
+    },
+    {
+      "text": "ev.power_outage.candles",
+      "requires": [{ "var": "money", "op": ">=", "val": 100 }],
+      "effects": [{ "type": "money", "val": -100 }, { "type": "rep", "val": 1 }]
+    }
+  ]
+}
