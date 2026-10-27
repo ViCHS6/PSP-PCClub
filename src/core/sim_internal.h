@@ -49,6 +49,8 @@ void resolve_request(World& w, uint8_t v);  // просьба решена: +5 �
 
 // --- ПК (pcs.cpp)
 void pcs_tick(World& w);
+// Поломка компонента comp: kBroken, просьба посетителю, on_action pc_broken (§7.7, damage_pc).
+void break_pc(World& w, uint8_t pc, int comp);
 // ПК после ремонта/замены/перезагрузки: kBusy с посетителем, иначе kIdle.
 void pc_restore(World& w, uint8_t pc);
 
@@ -57,7 +59,7 @@ float cond_var_value(const World& w, uint8_t var, Index arg);
 bool cond_holds(const World& w, const CondRec& c);
 bool conds_hold(const World& w, uint16_t first, uint8_t count);
 
-// --- Хуки системы событий (заглушки в hooks_stub.cpp до T023)
+// --- Хуки системы событий (events.cpp)
 void events_on_action(World& w, ActionId action, Index ref);
 void events_tick(World& w);  // каждый тик, шаг 4
 
