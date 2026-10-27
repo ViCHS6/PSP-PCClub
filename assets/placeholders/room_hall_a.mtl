@@ -1,0 +1,14 @@
+newmtl mat_ceiling
+Kd 1 1 1
+
+newmtl mat_floor
+Kd 1 1 1
+
+newmtl mat_wall_high
+Kd 1 1 1
+
+newmtl mat_wall_low
+Kd 1 1 1
+
+newmtl mat_window
+Kd 1 1 1

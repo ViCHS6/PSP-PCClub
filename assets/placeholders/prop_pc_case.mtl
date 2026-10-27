@@ -1,0 +1,5 @@
+newmtl mat_body
+Kd 1 1 1
+
+newmtl mat_detail
+Kd 1 1 1
