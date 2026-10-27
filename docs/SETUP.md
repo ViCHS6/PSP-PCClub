@@ -171,11 +171,15 @@ py -3.12 -c "import PIL; print(PIL.__version__)"
 
 ## 10. Blender + MCP (A002)
 
-Заполняется в A002; для сборки и запуска демосцены Blender не нужен.
+Для сборки и запуска демосцены Blender не нужен. Проверено в A002 (2026-10-28): Claude Code создал куб, снял снимок вьюпорта и удалил куб.
 
 | Компонент | Версия / настройка |
 |---|---|
-| Blender | |
-| Аддон Blender MCP | |
-| MCP-клиент и подключение | |
-| Команда проверки соединения | |
+| Blender | 5.2.3 LTS (`e13b728c6880`), `C:\Program Files\Blender Foundation\Blender 5.2\blender.exe` |
+| Аддон Blender MCP | «MCP for Blender» 1.8 (категория Interface: Blender MCP), протокол 15; в Blender — «Start MCP Server» |
+| MCP-клиент и подключение | Claude Code, сервер `blender` (stdio) в пользовательском `~/.claude.json`: `uvx blender-mcp` |
+| Команда проверки соединения | инструмент `get_addon_status`: `up_to_date: true`, версия Blender совпадает |
+
+Обновление аддона: `uvx mcp-for-blender install-addon`, затем выключить и включить аддон в Blender (или перезапустить Blender) и снова нажать «Start MCP Server».
+
+Новый ассет начинается с копии `assets/src/_template.blend` (A004); порядок работы — в текстовом блоке `README` внутри шаблона.
