@@ -1,0 +1,24 @@
+{
+  "id": "license_check",
+  "category": "crisis",
+  "trigger": {"type":"daily_roll", "hour":11},
+  "chance": {"base":0.1, "per":{"pirate_share":0.03, "flag:checked":0.2}},
+  "conditions": [
+    {"var":"day", "op":">=", "val":14},
+    {"var":"flag:checked", "op":"==", "val":0},
+    {"var":"date", "op":">=", "val":"2001-09-01"}
+  ],
+  "present": {"kind":"visitor", "model":"npc_inspector", "text":"ev.license_check.intro"},
+  "choices": [
+    {
+      "text":"ev.license_check.ok",
+      "requires":[{"var":"money","op":">=","val":3000}],
+      "effects":[
+        {"type":"money","expr":"-5000 * pirate_installs"},
+        {"type":"chance","p":0.2,"then":[{"type":"schedule_event","id":"license_check","in_days":7}]},
+        {"type":"flag","id":"checked","val":1},
+        {"type":"rep","val":-2}
+      ]
+    }
+  ]
+}

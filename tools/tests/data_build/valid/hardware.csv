@@ -1,0 +1,9 @@
+id,type,name,release,base_price,score,ram_mb,hdd_mb,power_w,wear_rate,fail_base,comfort
+cpu_basic,cpu,hw.cpu_basic.name,2000-03-01,3000,40,,,30,0.05,0.02,
+gpu_basic,gpu,hw.gpu_basic.name,2000-06-01,2500,30,,,15,0.05,0.02,
+ram_basic,ram,hw.ram_basic.name,2000-01-01,1200,,128,,5,0.02,0.01,
+hdd_basic,hdd,hw.hdd_basic.name,2000-06-01,2500,,,20000,10,0.15,0.04,
+psu_basic,psu,hw.psu_basic.name,1999-12-31,500,,,,0,0.05,0.02,
+monitor_basic,monitor,hw.monitor_basic.name,1999-01-01,6000,,,,80,0.05,0.02,3
+mouse_basic,mouse,hw.mouse_basic.name,1998-01-01,150,,,,0,0.4,0.05,0
+keyboard_basic,keyboard,hw.keyboard_basic.name,1998-01-01,200,,,,0,0.1,0.05,0

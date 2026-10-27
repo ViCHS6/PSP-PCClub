@@ -1,0 +1,21 @@
+[
+  {
+    "id": "school",
+    "name": "arch.school.name",
+    "base_rate": 1.6,
+    "hourly": [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+    "weekday": [1,1,1,1,1.2,1.4,1.2],
+    "money": [30,120],
+    "price_expect": 15,
+    "elasticity": 1.2,
+    "patience": [8,15],
+    "skill": [0.2,0.8],
+    "session_hours": [1,3],
+    "extend": 0.7,
+    "affinity": {"shooter_team": 1.5},
+    "virus": 0.05,
+    "hunger": 0.2,
+    "flags": ["noisy", "minigame_lover"],
+    "models": ["npc_teen"]
+  }
+]

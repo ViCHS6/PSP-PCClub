@@ -1,0 +1,19 @@
+{
+  "games.test_game.title": "Контр-Удар",
+  "arch.school.name": "Школьники",
+  "regular.dimon.name": "Дмитрий",
+  "hw.cpu_basic.name": "Процессор",
+  "hw.gpu_basic.name": "Видеокарта",
+  "hw.ram_basic.name": "Память",
+  "hw.hdd_basic.name": "Жёсткий диск",
+  "hw.psu_basic.name": "Блок питания",
+  "hw.monitor_basic.name": "Монитор",
+  "hw.mouse_basic.name": "Мышь",
+  "hw.keyboard_basic.name": "Клавиатура",
+  "goods.soda.name": "Газировка",
+  "upg.hall_small.name": "Малый зал",
+  "mg.snake.name": "Змейка",
+  "ev.license_check.intro": "Проверка лицензий!",
+  "ev.license_check.ok": "Хорошо",
+  "ui.unused": "Строка интерфейса"
+}

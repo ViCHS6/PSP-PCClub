@@ -1,0 +1,18 @@
+[
+  {
+    "id": "test_game",
+    "title": "games.test_game.title",
+    "ref": "Только для разработчика",
+    "genre": "shooter_team",
+    "release": "2001-06-01",
+    "price_license": 900,
+    "price_pirate": 70,
+    "req": {"cpu": 40, "gpu": 30, "ram": 64, "hdd_mb": 400},
+    "net": "lan",
+    "pop": {"peak": 1.0, "floor": 0.6, "rise_days": 30, "half_life_days": 400},
+    "minigame": "snake",
+    "score_scale": 300,
+    "tags": ["tournament", "team"],
+    "box_tex": "box_test"
+  }
+]

@@ -1,0 +1,5 @@
+{
+  "start": "2001-09-01",
+  "periods": [{"id":"winter","tag":"holidays","from":"12-29","to":"01-11"}],
+  "holidays": ["01-01","02-29"]
+}

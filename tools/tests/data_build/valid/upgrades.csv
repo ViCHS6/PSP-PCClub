@@ -1,0 +1,2 @@
+id,kind,name,level,archetype,requires,days,price,cost_month,cost_day,cost_hour,cost_minute,value
+hall_small,hall,upg.hall_small.name,1,,,,0,12000,,,,6
