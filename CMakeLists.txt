@@ -36,6 +36,7 @@ add_library(pcclub_core STATIC
     src/core/pcs.cpp
     src/core/commands.cpp
     src/core/conditions.cpp
+    src/core/events.cpp
     src/core/hooks_stub.cpp)
 target_include_directories(pcclub_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pcclub_core PRIVATE pcclub_options)
@@ -129,6 +130,7 @@ else()
             tests/core/test_math.cpp
             tests/core/test_contract.cpp
             tests/core/test_sim_run.cpp
+            tests/core/test_events.cpp
             tests/render/test_formats.cpp
             tests/render/test_resources.cpp
             src/render/render_common.cpp

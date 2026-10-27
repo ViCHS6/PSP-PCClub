@@ -319,7 +319,7 @@ struct ActiveEvent {
 };
 
 enum class MailKind : uint8_t {
-    kEvent,     // письмо-событие; ref — индекс ActiveEvent, пока не отвечено
+    kEvent,     // письмо-событие; ref — событие (EVNT); ждущий ответа ActiveEvent — тот, у кого mail = индекс письма
     kReport,    // итоги вчерашнего дня (утром)
     kNewGames,  // «новинки недели» (понедельник): игры, вышедшие за неделю
     kBill,      // счёт 1-го числа; amount — сумма
@@ -342,6 +342,48 @@ struct Mailbox {
     uint8_t count = 0;        // письма 0..count−1, новые в конце
     uint8_t unread = 0;
 };
+
+// СИСТЕМА СОБЫТИЙ (GDD §8.6, T023)
+//   Событие «срабатывает» — значит показывается игроку: занимает слот events.active,
+//   для present.kind = mail ещё и письмо (MailKind::kEvent), уведомление kEventPresented.
+//   Эффекты применяются только при ответе (cmd_event_choose).
+//
+//   Допуск (проверяется при каждой попытке сработать, для всех триггеров):
+//     - once и уже было → нет; day_index < cooldown_until → нет;
+//     - conditions выполнены (все через И);
+//     - событие из event_pool постоянного клиента — только пока он в клубе; тогда
+//       ActiveEvent::visitor — его слот (реплика у стойки, его модель);
+//     - есть свободный слот events.active (нет — не срабатывает, кулдаун не ставится);
+//     - бросок chance: p = clamp(base + Σ coef · var, 0, 1); при p ≥ 1 или p ≤ 0 ГПСЧ
+//       не тратится.
+//   Итог попытки: «сработало», «отказ» (once, conditions, бросок) или «ждёт» (кулдаун,
+//   постоянного клиента нет в клубе, нет слота active).
+//   Сработало → cooldown_until = day_index + cooldown_days, once помечается.
+//
+//   Триггеры. Час обрабатывается один раз — на первом тике внутри него (обычно тик,
+//   после которого minute = ЧЧ:00; 8:00 утра, которое ставит cmd_end_day, — на тике 8:01). Часы, которые симуляция пропускает (0–7 без ночного тарифа), не наступают.
+//     daily_roll — в trigger_hour; из всех, у кого выпал бросок, срабатывает одно —
+//                  выбор по weight (не больше одного случайного события в час);
+//     date       — в trigger_date, час trigger_hour или kEventDefaultHour;
+//     on_state   — раз в час, пока условия выполняются: попытка, если с последнего
+//                  перехода условий из «ложь» в «истина» ещё не было «сработало»/«отказа»
+//                  («ждёт» — попробует через час);
+//     on_action  — сразу, из места действия (команда или тик), все допущенные;
+//     scheduled  — только из events.scheduled: в свой день и час или позже (час не
+//                  наступил — на ближайшем обработанном). «Ждёт» — остаётся в очереди
+//                  и пробует каждый час; «отказ» — снимается без показа.
+//   Порядок внутри часа: scheduled → date → on_state → daily_roll; внутри — по индексу.
+//
+//   Эффекты (раскладка — data_pak.md §5): money < 0 — статья kExpEvents, при минусе —
+//   займ (§5.4); > 0 — kRevEvents. modifier действует days дней, считая сегодняшний;
+//   нет свободного слота — вытесняет истекающий раньше всех. spawn_visitor — только в
+//   kOpen/kNight; постоянный клиент заодно открывается. schedule_event: hour 0xFF →
+//   trigger_hour события → kEventDefaultHour; нет слота — пропадает. uninstall не трогает
+//   игру, в которую сейчас играют. damage_pc ломает компонент (kBroken, ремонт возможен);
+//   случайный выбор — среди собранных несломанных мест и стоящих в них компонентов.
+//   unlock игры — +1 лицензия. start_minigame — уведомление kEventMinigame, запускает
+//   её игра (game/). Все броски — World::rng, в порядке эффектов.
+constexpr int kEventDefaultHour = 9;  // час для date/schedule_event без hour — открытие клуба
 
 struct ScheduledEvent {
     Index event = kNone;      // kNone — слот пуст
@@ -416,6 +458,7 @@ enum class NoticeKind : uint8_t {
     kRegularUnlocked,  // ref = постоянный клиент
     kGoodsOut,         // ref = товар
     kGameOver,         // клуб закрыт за долги
+    kEventMinigame,    // эффект start_minigame: a = 0 — ref = MINI, a = 1 — ref = ServiceGame
 };
 
 struct Notice {
@@ -608,7 +651,9 @@ CmdResult cmd_buy_upgrade(World& world, Index upgrade);
 CmdResult cmd_repay_debt(World& world, int32_t amount);
 
 // Ответить на событие: active — индекс в events.active, choice — вариант. Проверяет requires
-// варианта (не выполнены → kInvalid), применяет эффекты, освобождает слот, помечает письмо.
+// варианта (не выполнены → kInvalid), применяет эффекты по порядку, освобождает слот,
+// помечает письмо (answered, choice, read). Пустой слот / нет варианта → kInvalid,
+// kGameOver → kWrongPhase. Любая фаза, кроме kGameOver.
 CmdResult cmd_event_choose(World& world, uint8_t active, uint8_t choice);
 
 // Пометить письмо прочитанным.
@@ -656,6 +701,10 @@ int pirate_installs(const World& world);
 
 bool upgrade_owned(const World& world, Index upgrade);
 bool flag_set(const World& world, Index flag);
+
+// Можно ли сейчас выбрать вариант choice события в слоте active (requires выполнены).
+// UI показывает недоступные варианты серыми. Пустой слот / нет варианта → false.
+bool event_choice_available(const World& world, uint8_t active, uint8_t choice);
 
 // Итоги дня i дней назад (0 — вчера). Нет такого — nullptr.
 const DayStats* stats_days_ago(const World& world, int days_ago);

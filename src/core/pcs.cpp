@@ -19,7 +19,7 @@ bool any_smoker_playing(const World& w) {
     return false;
 }
 
-void break_pc(World& w, uint8_t pc, int comp) {
+void break_component(World& w, uint8_t pc, int comp) {
     Pc& p = w.pcs[pc];
     p.state = PcState::kBroken;
     p.broken_component = static_cast<uint8_t>(comp);
@@ -61,7 +61,7 @@ void pc_hour(World& w, uint8_t pc) {
         const float pf = formula::fail_prob(d.hardware[p.component[k]].fail_base, p.wear[k],
                                             k == kCompCpu || k == kCompGpu, oh);
         if (pf > 0.0f && rng_chance(w.rng, pf)) {
-            break_pc(w, pc, k);
+            break_component(w, pc, k);
             return;
         }
     }
@@ -92,6 +92,8 @@ void fix_broken(World& w, uint8_t pc, int comp) {
 }  // namespace
 
 namespace detail {
+
+void break_pc(World& w, uint8_t pc, int comp) { break_component(w, pc, comp); }
 
 void pcs_tick(World& w) {
     for (int i = 0; i < w.club.seats; ++i) {

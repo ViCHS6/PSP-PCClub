@@ -12,6 +12,7 @@ namespace detail {
 // Совпадают с kMaxVisitors / kMaxPcs из core_api.h (проверяется static_assert в world.cpp).
 constexpr int kPrivVisitors = 32;
 constexpr int kPrivPcs = 16;
+constexpr int kPrivActiveEvents = 16;  // = kMaxActiveEvents
 
 // Дата «никогда» для сроков действия.
 constexpr DayNum kNoDate = -0x7FFFFFFF;
@@ -37,6 +38,13 @@ struct WorldPrivate {
 
     // --- Реклама kUpgAd: действует по этот день включительно (§7.1, F_ad аддитивен)
     DayNum ad_until[kMaxUpgrades];
+
+    // --- События (T023)
+    DayNum ev_hour_date = 0;                // последний обработанный час: дата и час
+    uint8_t ev_hour = 0xFF;
+    uint8_t ev_pad[3] = {0, 0, 0};
+    uint32_t ev_state_done[kMaxEvents / 32];  // on_state: попытка с последнего перехода в «истина» исчерпана
+    uint16_t ev_visitor_serial[kPrivActiveEvents];  // serial посетителя ActiveEvent::visitor
 
     // --- Кэши на час игры (§7.6): популярность с модификаторами и L_a
     float pop_today[kMaxGames];
