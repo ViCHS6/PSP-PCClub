@@ -5,8 +5,10 @@
 #include <pspkernel.h>
 
 #include <cstring>
+#include <cstdio>
 
 #include "render/render_internal.h"
+#include "render/texture_format.h"
 
 namespace render {
 namespace {
@@ -26,8 +28,10 @@ struct Mesh {
 };
 
 struct Texture {
-    const void* pixels;
+    const uint8_t* pixels;
     int width, height;
+    internal::TextureInfo info;
+    format::TextureHeader h;
 };
 
 enum class Mode { kNone, k3D, k2D };
@@ -41,28 +45,35 @@ Texture* g_textures = nullptr;
 uint16_t g_texture_count = 0;
 
 Mode g_mode = Mode::kNone;
-TextureId g_bound_texture = kNoTexture;
 uint32_t g_draw_calls = 0;
 uint32_t g_triangles = 0;
 
 void* arena_block(size_t bytes) { return memalign(64, bytes); }
 
 void bind_texture(TextureId id) {
+    sceGuDisable(GU_ALPHA_TEST);
     if (id >= g_texture_count) {
         sceGuDisable(GU_TEXTURE_2D);
-        g_bound_texture = kNoTexture;
         return;
     }
     sceGuEnable(GU_TEXTURE_2D);
-    if (g_bound_texture == id) return;
     const Texture& t = g_textures[id];
-    sceGuTexMode(GU_PSM_8888, 0, 0, 0);
-    sceGuTexImage(0, t.width, t.height, t.width, t.pixels);
+    const auto& h = t.h;
+    sceGuTexMode(h.format, 0, 0, (h.flags & 1) ? GU_TRUE : GU_FALSE);
+    if (h.clut_count) {
+        sceGuClutMode(GU_PSM_8888, 0, h.format == GU_PSM_T4 ? 0x0F : 0xFF, 0);
+        sceGuClutLoad(h.clut_count / 8, t.pixels + h.clut_offset);
+    }
+    sceGuTexImage(0, h.width, h.height, h.stride,
+                  t.pixels + h.pixels_offset + uint64_t(t.info.frame) * h.frame_bytes);
     sceGuTexFunc(GU_TFX_MODULATE, GU_TCC_RGBA);
     sceGuTexFilter(GU_NEAREST, GU_NEAREST);
     sceGuTexWrap(GU_REPEAT, GU_REPEAT);
     sceGuTexFlush();
-    g_bound_texture = id;
+    if (t.info.transparent) {
+        sceGuEnable(GU_ALPHA_TEST);
+        sceGuAlphaFunc(GU_GREATER, 0, 0xFF);
+    }
 }
 
 void enter_3d() {
@@ -84,6 +95,22 @@ void enter_2d() {
 
 }  // namespace
 
+namespace internal {
+
+TextureInfo* texture_info(TextureId id) {
+    return id < g_texture_count ? &g_textures[id].info : nullptr;
+}
+
+void resource_writeback(const void* data, size_t size) {
+    sceKernelDcacheWritebackRange(data, size);
+}
+
+size_t texture_file_limit() {
+    return g_texture_arena.used <= g_texture_arena.size ? g_texture_arena.size - g_texture_arena.used : 0;
+}
+
+}  // namespace internal
+
 bool init(const Config& config) {
     g_config = config;
     g_mesh_arena.base = static_cast<uint8_t*>(arena_block(config.mesh_arena_bytes));
@@ -93,6 +120,7 @@ bool init(const Config& config) {
     g_meshes = static_cast<Mesh*>(calloc(config.max_meshes, sizeof(Mesh)));
     g_textures = static_cast<Texture*>(calloc(config.max_textures, sizeof(Texture)));
     if (!g_mesh_arena.base || !g_texture_arena.base || !g_meshes || !g_textures) return false;
+    if (!internal::model_resources_init(config, &g_mesh_arena, true)) return false;
 
     // VRAM: [кадр 0][кадр 1][Z] — адреса относительно начала VRAM.
     void* draw_buffer = reinterpret_cast<void*>(0);
@@ -129,6 +157,7 @@ bool init(const Config& config) {
 
 void shutdown() {
     sceGuTerm();
+    internal::model_resources_shutdown();
     free(g_textures);
     free(g_meshes);
     free(g_texture_arena.base);
@@ -143,9 +172,11 @@ void shutdown() {
 MeshId mesh_create(const Vertex* vertices, uint16_t vertex_count, const uint16_t* indices,
                    uint16_t index_count) {
     if (g_mesh_count >= g_config.max_meshes) return kInvalidMesh;
-    auto* v = static_cast<Vertex*>(g_mesh_arena.alloc(sizeof(Vertex) * vertex_count, 16));
-    auto* i = static_cast<uint16_t*>(g_mesh_arena.alloc(sizeof(uint16_t) * index_count, 16));
+    internal::Arena pending = g_mesh_arena;
+    auto* v = static_cast<Vertex*>(pending.alloc(sizeof(Vertex) * vertex_count, 16));
+    auto* i = static_cast<uint16_t*>(pending.alloc(sizeof(uint16_t) * index_count, 16));
     if (!v || !i) return kInvalidMesh;
+    g_mesh_arena = pending;
     std::memcpy(v, vertices, sizeof(Vertex) * vertex_count);
     std::memcpy(i, indices, sizeof(uint16_t) * index_count);
     // GE читает основную память в обход кэша CPU.
@@ -158,14 +189,53 @@ MeshId mesh_create(const Vertex* vertices, uint16_t vertex_count, const uint16_t
 
 TextureId texture_create(int width, int height, TextureFormat format, const void* pixels) {
     auto pow2 = [](int n) { return n >= 8 && n <= 512 && (n & (n - 1)) == 0; };
-    if (format != TextureFormat::kRgba8888 || !pow2(width) || !pow2(height)) return kNoTexture;
+    if (!g_textures || !pixels || format != TextureFormat::kRgba8888 || !pow2(width) || !pow2(height)) return kNoTexture;
     if (g_texture_count >= g_config.max_textures) return kNoTexture;
     const size_t bytes = static_cast<size_t>(width) * height * 4;
     void* dst = g_texture_arena.alloc(bytes, 16);
     if (!dst) return kNoTexture;
     std::memcpy(dst, pixels, bytes);
     sceKernelDcacheWritebackRange(dst, bytes);
-    g_textures[g_texture_count] = {dst, width, height};
+    Texture& t = g_textures[g_texture_count];
+    t = {};
+    t.pixels = static_cast<const uint8_t*>(dst);
+    t.width = width;
+    t.height = height;
+    t.h.format = GU_PSM_8888;
+    t.h.width = static_cast<uint16_t>(width);
+    t.h.height = static_cast<uint16_t>(height);
+    t.h.stride = static_cast<uint16_t>(width);
+    t.h.frame_count = 1;
+    internal::mutable_stats().texture_arena_used = g_texture_arena.used;
+    return g_texture_count++;
+}
+
+TextureId texture_load_tex(const char* name, const void* data, size_t size) {
+    auto fail = [&](const char* error) {
+        std::fprintf(stderr, "TEX1 '%.32s': %s\n", name ? name : "(null)", error);
+        return kNoTexture;
+    };
+    if (!format::valid_texture_name(name)) return fail("invalid ASCII id");
+    if (texture_find(name) != kNoTexture) return fail("duplicate id");
+    format::TextureView view;
+    const char* error;
+    if (!format::validate_texture(data, size, &view, &error)) return fail(error);
+    if (!g_textures || g_texture_count >= g_config.max_textures) return fail("texture limit");
+    internal::Arena pending = g_texture_arena;
+    auto* dst = static_cast<uint8_t*>(pending.alloc(size, 16));
+    if (!dst) return fail("texture arena exhausted");
+    std::memcpy(dst, data, size);
+    sceKernelDcacheWritebackRange(dst, size);
+    Texture& t = g_textures[g_texture_count];
+    t = {};
+    t.pixels = dst;
+    t.width = view.h.width;
+    t.height = view.h.height;
+    t.h = view.h;
+    std::strcpy(t.info.name, name);
+    t.info.frame_count = view.h.frame_count;
+    t.info.transparent = (view.h.flags & 2) != 0;
+    g_texture_arena = pending;
     internal::mutable_stats().texture_arena_used = g_texture_arena.used;
     return g_texture_count++;
 }
@@ -176,7 +246,6 @@ void begin_frame(Color clear_color) {
     sceGuClearDepth(0);
     sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
     g_mode = Mode::kNone;
-    g_bound_texture = kNoTexture;
 }
 
 void set_camera(const core::Mat4& view, const core::Mat4& projection) {
@@ -187,12 +256,51 @@ void set_camera(const core::Mat4& view, const core::Mat4& projection) {
 void draw_mesh(MeshId mesh, const core::Mat4& model, TextureId texture) {
     if (mesh >= g_mesh_count) return;
     enter_3d();
+    sceGuTexScale(1.0f, 1.0f);
+    sceGuTexOffset(0.0f, 0.0f);
     sceGuSetMatrix(GU_MODEL, reinterpret_cast<const ScePspFMatrix4*>(model.m));
     bind_texture(texture);
     const Mesh& m = g_meshes[mesh];
     sceGuDrawArray(GU_TRIANGLES, kVertex3D | GU_INDEX_16BIT, m.index_count, m.indices, m.vertices);
     ++g_draw_calls;
     g_triangles += m.index_count / 3;
+}
+
+void draw_model(ModelId model, const core::Mat4& transform) {
+    const internal::Model* m = internal::model_resource(model);
+    if (!m) return;
+    enter_3d();
+    const auto& h = m->h;
+    const core::Mat4 packed_model = transform *
+        core::mat4_translate({h.pos_offset[0], h.pos_offset[1], h.pos_offset[2]}) *
+        core::mat4_scale({h.pos_scale[0], h.pos_scale[1], h.pos_scale[2]});
+    sceGuSetMatrix(GU_MODEL, reinterpret_cast<const ScePspFMatrix4*>(packed_model.m));
+    sceGuDisable(GU_LIGHTING);
+    sceGuDisable(GU_CULL_FACE);
+    sceGuShadeModel(GU_SMOOTH);
+    constexpr int kPackedVertex = GU_TEXTURE_16BIT | GU_COLOR_8888 | GU_VERTEX_16BIT |
+                                  GU_INDEX_16BIT | GU_TRANSFORM_3D;
+    static_assert(kPackedVertex == 0x111E, "MSH1 GE vertex layout");
+    for (uint32_t i = 0; i < h.submesh_count; ++i) {
+        const auto& s = m->subsets[i];
+        bind_texture(s.texture);
+        sceGuTexMapMode(GU_TEXTURE_COORDS, 0, 0);
+        sceGuTexScale(h.uv_scale[0], h.uv_scale[1]);
+        sceGuTexOffset(h.uv_offset[0], h.uv_offset[1]);
+        for (uint32_t done = 0; done < s.index_count;) {
+            const uint32_t remaining = s.index_count - done;
+            const uint32_t count = remaining < 65535 ? remaining : 65535;
+            sceGuDrawArray(GU_TRIANGLES, kPackedVertex, static_cast<int>(count),
+                           m->indices + s.index_start + done, m->vertices);
+            ++g_draw_calls;
+            g_triangles += count / 3;
+            done += count;
+        }
+    }
+    sceGuSetMatrix(GU_MODEL, reinterpret_cast<const ScePspFMatrix4*>(transform.m));
+    sceGuTexScale(1.0f, 1.0f);
+    sceGuTexOffset(0.0f, 0.0f);
+    sceGuDisable(GU_ALPHA_TEST);
 }
 
 void draw_rect(int x, int y, int w, int h, Color color) {

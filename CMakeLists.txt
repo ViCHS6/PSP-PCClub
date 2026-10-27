@@ -45,6 +45,10 @@ target_link_libraries(pcclub_core PRIVATE pcclub_options)
 add_library(pcclub_platform OBJECT src/platform/${PCCLUB_TARGET}/platform_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_render OBJECT
     src/render/render_common.cpp
+    src/render/mesh_format.cpp
+    src/render/mesh_resources.cpp
+    src/render/texture_format.cpp
+    src/render/texture_resources.cpp
     src/render/render_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_game OBJECT
     src/game/debug_overlay.cpp
@@ -57,6 +61,40 @@ endforeach()
 add_executable(pcclub src/main.cpp)
 target_link_libraries(pcclub PRIVATE
     pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game)
+
+# Демо-ресурсы лежат относительно приложения одинаково на PC и PSP.
+find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+set(DEMO_ASSETS ${CMAKE_CURRENT_BINARY_DIR}/assets)
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/demo_texture.py CONTENT [=[
+import sys
+from PIL import Image
+image = Image.new("RGBA", (16, 16))
+image.putdata([(94, 65, 42, 255) if (x // 8 + y // 8) % 2 == 0
+               else (122, 86, 56, 255) for y in range(16) for x in range(16)])
+image.save(sys.argv[1])
+]=])
+add_custom_command(
+    OUTPUT ${DEMO_ASSETS}/prop_desk_chipboard.msh
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_model.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/assets/placeholders/prop_desk_chipboard.obj
+            -o ${DEMO_ASSETS}/prop_desk_chipboard.msh
+    DEPENDS tools/convert_model.py assets/placeholders/prop_desk_chipboard.obj
+            assets/placeholders/prop_desk_chipboard.mtl
+    VERBATIM)
+add_custom_command(
+    OUTPUT ${DEMO_ASSETS}/demo_checker.tex
+    BYPRODUCTS ${DEMO_ASSETS}/demo_checker.png
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/demo_texture.py
+            ${DEMO_ASSETS}/demo_checker.png
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_texture.py
+            ${DEMO_ASSETS}/demo_checker.png -o ${DEMO_ASSETS}/demo_checker.tex --format t4
+    DEPENDS tools/convert_texture.py ${CMAKE_CURRENT_BINARY_DIR}/demo_texture.py
+    VERBATIM)
+add_custom_target(pcclub_demo_assets ALL DEPENDS
+    ${DEMO_ASSETS}/prop_desk_chipboard.msh ${DEMO_ASSETS}/demo_checker.tex)
+add_dependencies(pcclub pcclub_demo_assets)
 
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
@@ -90,7 +128,14 @@ else()
             tests/test_main.cpp
             tests/core/test_math.cpp
             tests/core/test_contract.cpp
-            tests/core/test_sim_run.cpp)
+            tests/core/test_sim_run.cpp
+            tests/render/test_formats.cpp
+            tests/render/test_resources.cpp
+            src/render/render_common.cpp
+            src/render/mesh_format.cpp
+            src/render/texture_format.cpp
+            src/render/mesh_resources.cpp
+            src/render/texture_resources.cpp)
         target_compile_options(pcclub_tests PRIVATE -Wall -Wextra)
         target_link_libraries(pcclub_tests PRIVATE pcclub_core doctest::doctest)
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/core/formulas.cpp")
