@@ -1,0 +1,26 @@
+{
+  "id": "dimon_mom_comes",
+  "category": "regular",
+  "trigger": { "type": "daily_roll", "hour": 18 },
+  "weight": 1.0,
+  "chance": { "base": 0.15 },
+  "cooldown_days": 30,
+  "conditions": [
+    { "var": "flag:dimon_challenged", "op": "==", "val": 1 }
+  ],
+  "present": { "kind": "visitor", "model": "npc_mom", "text": "ev.dimon_mom_comes.intro" },
+  "choices": [
+    {
+      "text": "ev.dimon_mom_comes.call_him",
+      "effects": [{ "type": "relation", "regular": "dimon", "val": -3 }, { "type": "rep", "val": 1 }]
+    },
+    {
+      "text": "ev.dimon_mom_comes.gone",
+      "effects": [{ "type": "relation", "regular": "dimon", "val": 5 }, { "type": "rep", "val": -1 }]
+    },
+    {
+      "text": "ev.dimon_mom_comes.offer_hour",
+      "effects": [{ "type": "money", "val": 40 }]
+    }
+  ]
+}

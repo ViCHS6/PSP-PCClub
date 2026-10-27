@@ -1,0 +1,5 @@
+id,name,buy_price,sell_price,weight
+noodles,goods.noodles.name,10,15,1.0
+soda,goods.soda.name,8,12,1.2
+chips,goods.chips.name,12,18,0.8
+chocolate,goods.chocolate.name,15,22,0.6

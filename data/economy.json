@@ -1,0 +1,18 @@
+{
+  "start_money": 20000,
+  "start_rep": 30,
+  "start_price_hour": 20,
+  "start_price_night": 100,
+  "tax_rate": 0.06,
+  "electricity_price": 1.2,
+  "loan_rate_week": 0.10,
+  "debt_limit": 30000,
+  "debt_days_to_lose": 14,
+  "start_upgrades": ["hall_6", "inet_64"],
+  "start_pcs": 6,
+  "start_pc": {
+    "cpu": "cpu_p3_800", "gpu": "gpu_gf2mx", "ram": "ram_128", "hdd": "hdd_20g",
+    "psu": "psu_250", "monitor": "mon_crt17", "mouse": "mouse_ball",
+    "keyboard": "kbd_basic", "chair": "chair_office"
+  }
+}

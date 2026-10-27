@@ -1,0 +1,23 @@
+{
+  "id": "new_year",
+  "category": "calendar",
+  "trigger": { "type": "date", "date": "2001-12-31", "hour": 12 },
+  "once": true,
+  "present": { "kind": "mail", "text": "ev.new_year.intro" },
+  "choices": [
+    {
+      "text": "ev.new_year.party",
+      "requires": [{ "var": "money", "op": ">=", "val": 300 }],
+      "effects": [
+        { "type": "money", "val": -300 },
+        { "type": "rep", "val": 2 },
+        { "type": "flag", "id": "ny_party", "val": 1 },
+        { "type": "modifier", "target": "arrivals:school", "mult": 1.4, "days": 10 }
+      ]
+    },
+    {
+      "text": "ev.new_year.modest",
+      "effects": [{ "type": "modifier", "target": "arrivals", "mult": 1.1, "days": 3 }]
+    }
+  ]
+}

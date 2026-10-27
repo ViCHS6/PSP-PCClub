@@ -1,0 +1,39 @@
+{
+  "id": "dimon_record_challenge",
+  "category": "regular",
+  "trigger": { "type": "on_action", "action": "record_beaten" },
+  "weight": 1.0,
+  "chance": { "base": 0.8 },
+  "cooldown_days": 14,
+  "conditions": [
+    { "var": "visits_archetype:school", "op": ">=", "val": 20 }
+  ],
+  "present": { "kind": "visitor", "model": "npc_teen_a", "text": "ev.dimon_record_challenge.intro" },
+  "choices": [
+    {
+      "text": "ev.dimon_record_challenge.rematch",
+      "effects": [
+        { "type": "flag", "id": "dimon_challenged", "val": 1 },
+        { "type": "spawn_visitor", "regular": "dimon" },
+        { "type": "chance", "p": 0.6, "then": [{ "type": "relation", "regular": "dimon", "val": 10 }] }
+      ]
+    },
+    {
+      "text": "ev.dimon_record_challenge.free_hour",
+      "requires": [{ "var": "money", "op": ">=", "val": 20 }],
+      "effects": [
+        { "type": "flag", "id": "dimon_challenged", "val": 1 },
+        { "type": "money", "val": -20 },
+        { "type": "relation", "regular": "dimon", "val": 10 },
+        { "type": "spawn_visitor", "regular": "dimon" }
+      ]
+    },
+    {
+      "text": "ev.dimon_record_challenge.shrug",
+      "effects": [
+        { "type": "flag", "id": "dimon_challenged", "val": 1 },
+        { "type": "relation", "regular": "dimon", "val": -10 }
+      ]
+    }
+  ]
+}

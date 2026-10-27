@@ -1,0 +1,12 @@
+{
+  "start": "2001-09-01",
+  "periods": [
+    { "id": "autumn_holidays", "from": "11-03", "to": "11-11", "tag": "holidays" },
+    { "id": "winter_holidays", "from": "12-29", "to": "01-11", "tag": "holidays" },
+    { "id": "winter_session",  "from": "01-08", "to": "01-31", "tag": "session" },
+    { "id": "spring_holidays", "from": "03-24", "to": "03-31", "tag": "holidays" },
+    { "id": "summer_session",  "from": "06-01", "to": "06-25", "tag": "session" },
+    { "id": "summer",          "from": "06-01", "to": "08-31", "tag": "holidays" }
+  ],
+  "holidays": ["01-01", "01-07", "02-23", "03-08", "05-01", "05-09", "06-12", "11-07"]
+}
