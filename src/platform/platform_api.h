@@ -93,6 +93,21 @@ bool file_size(const char* path, size_t* out_size);
 // Читает файл целиком в dst. false — нет файла, ошибка чтения или файл больше capacity.
 bool file_read(const char* path, void* dst, size_t capacity, size_t* out_read);
 
+// Чтение кусками — для потоковой музыки (T061). Файл держится открытым: на карте памяти
+// открытие дороже чтения. Одновременно открыто не больше kMaxOpenFiles, без аллокаций.
+constexpr int kMaxOpenFiles = 4;
+constexpr int kNoFile = -1;
+
+// Дескриптор ≥ 0 или kNoFile (нет файла, кончились слоты).
+int file_open(const char* path);
+
+// Читает до size байт с позиции offset. false — неверный дескриптор или ошибка чтения;
+// *out_read < size — достигнут конец файла (не ошибка). Только главный поток.
+bool file_read_at(int file, size_t offset, void* dst, size_t size, size_t* out_read);
+
+// kNoFile и уже закрытый дескриптор — без последствий.
+void file_close(int file);
+
 // ---------------------------------------------------------------------------
 // Память
 
@@ -106,13 +121,22 @@ struct MemoryStats {
 MemoryStats memory_stats();
 
 // ---------------------------------------------------------------------------
-// Звук — ЗАГЛУШКА до T061: audio_start() возвращает false.
+// Звук — сырой вывод (T061). Игра звук сюда не шлёт: она пользуется микшером platform/audio_api.h,
+// который сам вызывает audio_start().
 
-// Заполнить frames стереокадров int16 (L, R, L, R, …), 44 100 Гц.
-// Вызывается из АУДИОПОТОКА: без аллокаций, без блокировок главного потока.
+constexpr int kAudioRate = 44100;
+constexpr int kAudioFrames = 1024;  // стереокадров за вызов колбэка: кратно 64 (sceAudio), ≈ 23 мс
+
+// Заполнить frames (= kAudioFrames) стереокадров int16 (L, R, L, R, …), 44 100 Гц.
+// Вызывается из АУДИОПОТОКА: без аллокаций, без блокировок главного потока, без файлов.
 using AudioCallback = void (*)(int16_t* dst, int frames, void* user);
 
+// PSP: отдельный поток с приоритетом выше главного, один канал sceAudio, стерео.
+// PC: SDL_OpenAudioDevice. false — звука нет (нет устройства); игра работает без звука.
+// Повторный вызов без audio_stop() — false.
 bool audio_start(AudioCallback callback, void* user);
+
+// Останавливает поток и ждёт его завершения: после возврата колбэк больше не вызывается.
 void audio_stop();
 
 }  // namespace platform
