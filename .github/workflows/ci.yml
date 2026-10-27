@@ -17,7 +17,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++ libsdl2-dev git git-lfs
+          sudo apt-get install -y cmake ninja-build g++ libsdl2-dev python3-pil git git-lfs
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,9 +46,10 @@ jobs:
     container:
       image: pspdev/pspdev:v20261001
     steps:
-      # Git LFS нужен уже при checkout; libstdc++ — для Node.js-действий в Alpine.
+      # Git LFS нужен уже при checkout; libstdc++ — для Node.js-действий в Alpine;
+      # Python и Pillow — для конвертации ассетов при сборке (T012).
       - name: Install container dependencies
-        run: apk add --no-cache ninja git git-lfs libstdc++
+        run: apk add --no-cache ninja git git-lfs libstdc++ python3 py3-pillow
 
       - name: Checkout
         uses: actions/checkout@v4
