@@ -57,8 +57,10 @@ uint32_t next_codepoint(const char*& s) {
 namespace internal {
 
 void* Arena::alloc(size_t bytes, size_t align) {
+    if (!base || !align || (align & (align - 1)) || used > size || align - 1 > size - used)
+        return nullptr;
     const size_t start = (used + align - 1) & ~(align - 1);
-    if (start + bytes > size) return nullptr;
+    if (start > size || bytes > size - start) return nullptr;
     used = start + bytes;
     return base + start;
 }

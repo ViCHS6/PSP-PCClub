@@ -8,8 +8,6 @@ namespace {
 using render::rgba;
 using render::Vertex;
 
-constexpr int kCheckerSize = 32;
-
 // Куб 1×1×1 с центром в начале координат: 6 граней × 4 вершины, свой цвет у каждой грани.
 render::MeshId create_cube() {
     struct Face {
@@ -53,24 +51,15 @@ render::MeshId create_floor() {
     return render::mesh_create(vertices, 4, indices, 6);
 }
 
-render::TextureId create_checker() {
-    uint32_t pixels[kCheckerSize * kCheckerSize];
-    for (int y = 0; y < kCheckerSize; ++y) {
-        for (int x = 0; x < kCheckerSize; ++x) {
-            const bool dark = ((x / 16) + (y / 16)) % 2 == 0;
-            pixels[y * kCheckerSize + x] = dark ? rgba(94, 65, 42) : rgba(122, 86, 56);
-        }
-    }
-    return render::texture_create(kCheckerSize, kCheckerSize, render::TextureFormat::kRgba8888, pixels);
-}
-
 }  // namespace
 
 bool DemoScene::init() {
     cube_ = create_cube();
     floor_ = create_floor();
-    checker_ = create_checker();
-    return cube_ != render::kInvalidMesh && floor_ != render::kInvalidMesh && checker_ != render::kNoTexture;
+    checker_ = render::texture_load_file("assets/demo_checker.tex");
+    desk_ = render::model_load_file("assets/prop_desk_chipboard.msh");
+    return cube_ != render::kInvalidMesh && floor_ != render::kInvalidMesh &&
+           checker_ != render::kNoTexture && desk_ != render::kInvalidModel;
 }
 
 void DemoScene::update(float dt, const platform::InputState& input) {
@@ -88,7 +77,7 @@ void DemoScene::update(float dt, const platform::InputState& input) {
 }
 
 void DemoScene::draw() const {
-    constexpr float kDistance = 3.2f;
+    constexpr float kDistance = 4.0f;
     const core::Vec3 target = {0, 0.5f, 0};
     const core::Vec3 eye = {
         target.x + kDistance * std::cos(pitch_) * std::sin(yaw_),
@@ -101,9 +90,10 @@ void DemoScene::draw() const {
     render::set_camera(view, projection);
 
     render::draw_mesh(floor_, core::mat4_identity(), checker_);
-    const core::Mat4 model = core::mat4_translate({0, 0.5f, 0}) * core::mat4_rotate_y(spin_) *
+    const core::Mat4 model = core::mat4_translate({-0.9f, 0.65f, 0}) * core::mat4_rotate_y(spin_) *
                              core::mat4_rotate_x(spin_ * 0.6f);
     render::draw_mesh(cube_, model);
+    render::draw_model(desk_, core::mat4_translate({0.8f, 0, 0}));
 }
 
 }  // namespace game
