@@ -1,0 +1,26 @@
+[
+  {
+    "id": "font_ui12",
+    "source": "Uni2-Terminus12x6.psf.gz",
+    "mode": "prop",
+    "options": {"style": "regular", "tabular_digits": true, "baseline": 10}
+  },
+  {
+    "id": "font_mono12",
+    "source": "Uni2-Terminus12x6.psf.gz",
+    "mode": "mono",
+    "options": {"style": "regular", "baseline": 10}
+  },
+  {
+    "id": "font_ui14",
+    "source": "Uni2-Terminus14.psf.gz",
+    "mode": "prop",
+    "options": {"style": "regular", "tabular_digits": true, "baseline": 12}
+  },
+  {
+    "id": "font_ui14b",
+    "source": "Uni2-TerminusBold14.psf.gz",
+    "mode": "prop",
+    "options": {"style": "bold", "tabular_digits": true, "baseline": 12}
+  }
+]
