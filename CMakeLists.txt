@@ -62,7 +62,9 @@ add_library(pcclub_game OBJECT
     src/game/player_demo.cpp
     src/game/club_scene.cpp
     src/game/club_scene_layout.cpp
-    src/game/club_scene_rules.cpp)
+    src/game/club_scene_rules.cpp
+    src/game/admin_desk.cpp
+    src/game/admin_desk_core.cpp)
 
 # --- ui: ОС администратора (T030, контракт — src/ui/ui_api.h).
 add_library(pcclub_ui OBJECT
@@ -358,6 +360,8 @@ else()
             tests/game/test_player.cpp
             tests/game/test_interact.cpp
             tests/game/test_club_scene.cpp
+            tests/game/test_admin_desk.cpp
+            src/game/admin_desk_core.cpp
             src/game/player.cpp
             src/game/interact.cpp
             src/game/club_scene_layout.cpp
@@ -399,7 +403,9 @@ else()
         add_dependencies(pcclub_tests pcclub_data)
         # Поведение ОС: ui.cpp с заглушками render/platform/audio внутри теста.
         add_executable(pcclub_ui_tests tests/test_main.cpp tests/ui/test_ui_flow.cpp
-            src/ui/ui.cpp src/ui/ui_common.cpp)
+            src/ui/ui.cpp src/ui/ui_common.cpp
+            tests/ui/test_desk_os.cpp src/game/admin_desk.cpp src/game/admin_desk_core.cpp
+            src/game/player.cpp)
         target_compile_options(pcclub_ui_tests PRIVATE -Wall -Wextra)
         target_compile_definitions(pcclub_ui_tests PRIVATE
             PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")

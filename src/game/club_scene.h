@@ -13,9 +13,9 @@
 //     if (minigame::running()) minigame::update(dt, input);
 //     ui::update(...);
 //     club.update(dt, ui::active() || minigame::running() ? platform::InputState{} : input);
-//     if (club.take_os_request()) { /* открыть ОС — до T033 как по START */ }
+//     if (club.take_os_request()) desk.enter(world);       // въезд в монитор — admin_desk.h
 //     ...
-//     club.draw(!ui::active() && !minigame::running());   // подсказки — только в мире
+//     club.draw(hud, desk.camera(club.player()));           // подсказки — только в мире
 //
 // update() зовётся и во время мини-игры: так сцена забирает её результат (take_result)
 // и отдаёт команду ядру. Память в кадре не выделяется.
@@ -43,10 +43,13 @@ public:
     // При загрузке, после render/audio/ui::init и minigame::register_builtin.
     bool init(const Params& params);
     void update(float dt, const platform::InputState& input);
-    void draw(bool hud) const;
+    // view — вид камеры вместо глаз игрока (въезд в монитор стойки), nullptr — глаза игрока.
+    void draw(bool hud, const core::Mat4* view = nullptr) const;
 
-    // × у стойки: true один раз — вызывающий открывает ОС (переход камеры — T033).
+    // × у стойки: true один раз — вызывающий запускает въезд в монитор (AdminDesk::enter).
     bool take_os_request();
+    // Преобразование экрана монитора стойки (как у render::screen_draw) — цель въезда камеры.
+    const core::Mat4& admin_screen() const { return admin_screen_tf_; }
 
     void on_action(InteractId id, InteractAction action);
 
@@ -114,7 +117,7 @@ private:
     render::ScreenState admin_screen_{};
 };
 
-// Демо до игрового цикла (T033/T034): мир в main не тикает, поэтому ПК сами не виснут и не
+// Демо до стартового состояния новой игры (T062): в первые дни ПК сами почти не виснут и не
 // пылятся. Расставляет состояния, чтобы на Go было что обслужить: ПК 2 завис, ПК 3 в пыли,
 // ПК 4 сломан, ПК 5 выключен, пиратский диск первой вышедшей игры — для Установки.
 // Пишет поля World напрямую (кроме выключения) — только для демо-мира, в игре не вызывать.
