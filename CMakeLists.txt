@@ -55,7 +55,11 @@ add_library(pcclub_render OBJECT
     src/render/render_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_game OBJECT
     src/game/debug_overlay.cpp
-    src/game/demo_scene.cpp)
+    src/game/demo_scene.cpp
+    src/game/player.cpp
+    src/game/interact.cpp
+    src/game/interact_draw.cpp
+    src/game/player_demo.cpp)
 
 foreach(lib pcclub_platform pcclub_render pcclub_game)
     target_link_libraries(${lib} PRIVATE pcclub_options pcclub_core)
@@ -76,15 +80,20 @@ image.putdata([(94, 65, 42, 255) if (x // 8 + y // 8) % 2 == 0
                else (122, 86, 56, 255) for y in range(16) for x in range(16)])
 image.save(sys.argv[1])
 ]=])
-add_custom_command(
-    OUTPUT ${DEMO_ASSETS}/prop_desk_chipboard.msh
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_model.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/assets/placeholders/prop_desk_chipboard.obj
-            -o ${DEMO_ASSETS}/prop_desk_chipboard.msh
-    DEPENDS tools/convert_model.py assets/placeholders/prop_desk_chipboard.obj
-            assets/placeholders/prop_desk_chipboard.mtl
-    VERBATIM)
+# T010: заглушки T013 для демо управления.
+set(DEMO_MODELS)
+foreach(prop prop_desk_chipboard prop_crt17 prop_pc_case prop_chair_office)
+    add_custom_command(
+        OUTPUT ${DEMO_ASSETS}/${prop}.msh
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_model.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets/placeholders/${prop}.obj
+                -o ${DEMO_ASSETS}/${prop}.msh
+        DEPENDS tools/convert_model.py assets/placeholders/${prop}.obj
+                assets/placeholders/${prop}.mtl
+        VERBATIM)
+    list(APPEND DEMO_MODELS ${DEMO_ASSETS}/${prop}.msh)
+endforeach()
 add_custom_command(
     OUTPUT ${DEMO_ASSETS}/demo_checker.tex
     BYPRODUCTS ${DEMO_ASSETS}/demo_checker.png
@@ -95,9 +104,20 @@ add_custom_command(
             ${DEMO_ASSETS}/demo_checker.png -o ${DEMO_ASSETS}/demo_checker.tex --format t4
     DEPENDS tools/convert_texture.py ${CMAKE_CURRENT_BINARY_DIR}/demo_texture.py
     VERBATIM)
-add_custom_target(pcclub_demo_assets ALL DEPENDS
-    ${DEMO_ASSETS}/prop_desk_chipboard.msh ${DEMO_ASSETS}/demo_checker.tex)
+add_custom_target(pcclub_demo_assets ALL DEPENDS ${DEMO_MODELS} ${DEMO_ASSETS}/demo_checker.tex)
 add_dependencies(pcclub pcclub_demo_assets)
+
+# T010: data.pak рядом с приложением — демо берёт из него подсказки (strings_ru.json).
+file(GLOB_RECURSE PCCLUB_DATA_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/*.json ${CMAKE_CURRENT_SOURCE_DIR}/data/*.csv)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_data.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/data -o ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    DEPENDS tools/build_data.py ${PCCLUB_DATA_SOURCES}
+    VERBATIM)
+add_custom_target(pcclub_data ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/data.pak)
+add_dependencies(pcclub pcclub_data)
 
 # T041: исходники заглушки и бинарные ресурсы создаются только в build/.
 target_sources(pcclub_render PRIVATE src/render/anim.cpp src/render/anim_format.cpp)
@@ -197,6 +217,10 @@ else()
             tests/core/test_events.cpp
             tests/render/test_formats.cpp
             tests/render/test_resources.cpp
+            tests/game/test_player.cpp
+            tests/game/test_interact.cpp
+            src/game/player.cpp
+            src/game/interact.cpp
             src/render/render_common.cpp
             src/render/mesh_format.cpp
             src/render/texture_format.cpp
