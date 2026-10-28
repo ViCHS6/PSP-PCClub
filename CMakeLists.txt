@@ -302,3 +302,97 @@ if(NOT PSP AND PCCLUB_TESTS)
     target_link_libraries(pcclub_screen_tests PRIVATE pcclub_core doctest::doctest)
     add_test(NAME pcclub_screen_tests COMMAND pcclub_screen_tests)
 endif()
+
+# --- T025: автономный прогон ядра; тестовый пак явно отделён от игрового контента T026.
+if(NOT PSP)
+    add_executable(balance-runner src/tools/balance_runner.cpp src/tools/balance_bots.cpp)
+    target_link_libraries(balance-runner PRIVATE pcclub_options pcclub_core)
+    file(GLOB_RECURSE BALANCE_TEST_INPUTS CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/tests/data_build/valid/*")
+    set(BALANCE_TEST_PAK "${CMAKE_CURRENT_BINARY_DIR}/balance_test.pak")
+    add_custom_command(
+        OUTPUT "${BALANCE_TEST_PAK}"
+        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_data.py"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/tests/data_build/valid" -o "${BALANCE_TEST_PAK}"
+        DEPENDS ${BALANCE_TEST_INPUTS} tools/build_data.py src/core/data_types.h docs/formats/data_pak.md
+        VERBATIM)
+    add_custom_target(balance_test_data DEPENDS "${BALANCE_TEST_PAK}")
+    add_dependencies(balance-runner balance_test_data)
+
+    if(PCCLUB_TESTS)
+        file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/balance_smoke.cmake" CONTENT [=[
+file(MAKE_DIRECTORY "${OUT}")
+foreach(strategy passive normal aggressive)
+    foreach(repeat 1 2)
+        execute_process(
+            COMMAND "${RUNNER}" --days 10 --seed 1 --strategy "${strategy}"
+                    --data "${DATA}" --out "${OUT}/${strategy}_${repeat}.csv"
+            RESULT_VARIABLE result OUTPUT_VARIABLE log ERROR_VARIABLE error)
+        if(NOT result STREQUAL "0")
+            message(FATAL_ERROR "${strategy}: ${result}: ${log} ${error}")
+        endif()
+        file(STRINGS "${OUT}/${strategy}_${repeat}.csv" rows)
+        list(LENGTH rows count)
+        list(GET rows 0 header)
+        if(NOT count EQUAL 11 OR NOT header STREQUAL
+            "day,date,money,revenue,expenses,profit,visitors_arrived,visitors_served,visitors_lost,load_pct,satisfaction_avg,reputation,pcs_working,hung_events,broken_events,debt")
+            message(FATAL_ERROR "Invalid CSV: ${strategy}, rows=${count}, header=${header}")
+        endif()
+        foreach(day RANGE 1 10)
+            list(GET rows ${day} row)
+            if(NOT row MATCHES "^${day},[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9],")
+                message(FATAL_ERROR "Invalid CSV day: ${row}")
+            endif()
+        endforeach()
+    endforeach()
+    file(SHA256 "${OUT}/${strategy}_1.csv" first)
+    file(SHA256 "${OUT}/${strategy}_2.csv" second)
+    if(NOT first STREQUAL second)
+        message(FATAL_ERROR "${strategy}: nondeterministic CSV")
+    endif()
+endforeach()
+function(expect_error)
+    execute_process(COMMAND "${RUNNER}" ${ARGN}
+        RESULT_VARIABLE result OUTPUT_VARIABLE log ERROR_VARIABLE error)
+    if(result STREQUAL "0" OR error STREQUAL "")
+        message(FATAL_ERROR "Expected an error for ${ARGN}: ${log}")
+    endif()
+endfunction()
+expect_error(--days 0)
+expect_error(--days -1)
+expect_error(--days 1.5)
+expect_error(--days 2147483648)
+expect_error(--days)
+expect_error(--days 1 --days 2)
+expect_error(--seed -1)
+expect_error(--seed 4294967296)
+expect_error(--seed 12x)
+expect_error(--strategy unknown)
+expect_error(--unknown 1)
+expect_error(--data "${OUT}/missing.pak")
+expect_error(--data "${DATA}" --out "${OUT}/missing/dir/output.csv")
+file(SHA256 "${DATA}" original_data)
+expect_error(--data "${DATA}" --out "${DATA}")
+file(SHA256 "${DATA}" current_data)
+if(NOT original_data STREQUAL current_data)
+    message(FATAL_ERROR "Runner overwrote the input data")
+endif()
+execute_process(
+    COMMAND "${PYTHON}" "${PLOT}" "${OUT}/passive_1.csv" "${OUT}/normal_1.csv"
+            "${OUT}/aggressive_1.csv" -o "${OUT}/balance.html"
+    RESULT_VARIABLE result OUTPUT_VARIABLE log ERROR_VARIABLE error)
+if(NOT result STREQUAL "0")
+    message(FATAL_ERROR "Plot: ${log} ${error}")
+endif()
+]=])
+        add_test(NAME balance_runner_smoke COMMAND ${CMAKE_COMMAND}
+            "-DRUNNER=$<TARGET_FILE:balance-runner>" "-DDATA=${BALANCE_TEST_PAK}"
+            "-DOUT=${CMAKE_CURRENT_BINARY_DIR}/balance_smoke" "-DPYTHON=${Python3_EXECUTABLE}"
+            "-DPLOT=${CMAKE_CURRENT_SOURCE_DIR}/tools/plot_balance.py"
+            -P "${CMAKE_CURRENT_BINARY_DIR}/balance_smoke.cmake")
+        set_tests_properties(balance_runner_smoke PROPERTIES TIMEOUT 30)
+        add_test(NAME balance_runner_90days COMMAND balance-runner --days 90 --seed 1
+            --strategy normal --out "${CMAKE_CURRENT_BINARY_DIR}/balance_90.csv")
+        set_tests_properties(balance_runner_90days PROPERTIES TIMEOUT 10)
+    endif()
+endif()
