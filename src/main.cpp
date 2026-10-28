@@ -1,4 +1,5 @@
 // Точка входа — общая для PSP и PC.
+#include "game/autosave.h"
 #include "game/club_scene.h"
 #include "game/debug_overlay.h"
 #include "platform/platform_api.h"
@@ -27,6 +28,7 @@ float g_sim_minutes = 0.0f;
 // Мир идёт в реальном времени (T031: в Кассе должны появляться посетители). До итогов дня
 // (T062) день закрывается сам.
 void sim_update(float dt) {
+    game::autosave_update(g_world);  // T060: утро и закрытие — до cmd_end_day
     if (g_world.clock.phase == core::Phase::kClosed) core::cmd_end_day(g_world);
     g_sim_minutes += dt * core::minutes_per_real_second(g_world);
     while (g_sim_minutes >= 1.0f) {
@@ -90,9 +92,11 @@ int main(int argc, char** argv) {
     const bool have_data = load_data();
     const bool have_ui = ui::init({have_data ? &g_data : nullptr, audio::sound_find("sfx_click")});
     ui::AppId demo_app = ui::kNoApp;
+    bool loaded = false;  // T060: мир из сохранения — без демо-поломок club_demo_world
     if (have_ui) {
         if (have_data) {
             core::world_init(g_world, g_data, 1);
+            loaded = game::autosave_load(g_world, g_data);
             ui::set_world(&g_world);
         }
         minigame::register_builtin();
@@ -118,7 +122,7 @@ int main(int argc, char** argv) {
     // T014: зал на 6 мест (вместо демо T010 PlayerDemo; DemoScene/PlayerDemo остаются в сборке).
     // Мир демо не тикает — club_demo_world расставляет состояния ПК, чтобы было что обслужить.
     static game::ClubScene scene;  // статически: пулы Colliders/InteractSystem не на стеке
-    if (have_data) game::club_demo_world(g_world);
+    if (have_data && !loaded) game::club_demo_world(g_world);
     if (!scene.init({have_data ? &g_world : nullptr, have_data ? &g_data : nullptr})) {
         ui::shutdown();
         audio::shutdown();
