@@ -8,10 +8,12 @@
 #include "core/data_api.h"
 #include "minigames/games_app.h"
 #include "minigames/sdk.h"
+#include "ui/apps/os_apps.h"
 #include "ui/demo_app.h"
 #include "ui/ui_api.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 namespace {
@@ -19,7 +21,19 @@ namespace {
 // data.pak — строки ОС (T030). Буфер по примеру data_api.h; без файла ОС покажет ключи.
 alignas(16) uint8_t g_pak[1 << 20];
 core::GameData g_data;
-core::World g_world;  // демо: стартовый мир без тиков — деньги и часы на панели задач
+core::World g_world;
+float g_sim_minutes = 0.0f;
+
+// Мир идёт в реальном времени (T031: в Кассе должны появляться посетители). До итогов дня
+// (T062) день закрывается сам.
+void sim_update(float dt) {
+    if (g_world.clock.phase == core::Phase::kClosed) core::cmd_end_day(g_world);
+    g_sim_minutes += dt * core::minutes_per_real_second(g_world);
+    while (g_sim_minutes >= 1.0f) {
+        core::tick(g_world);
+        g_sim_minutes -= 1.0f;
+    }
+}
 
 bool load_data() {
     size_t size = 0;
@@ -89,13 +103,20 @@ int main(int argc, char** argv) {
             core::world_init(g_world, g_data, 1);
             ui::set_world(&g_world);
         }
-        demo_app = ui::demo_register();
         minigame::register_builtin();
         if (have_data) minigame::validate(g_data);
-        minigame::games_app_register();
-        if (has_arg(argc, argv, "--ui-demo")) {
+        ui::register_os_apps();
+        demo_app = ui::demo_register();  // демо T030 — последними значками
+        // PC, для снимков: --skip-minutes N — промотать мир, --ui-app <id> — открыть программу.
+        const char* skip = arg_value(argc, argv, "--skip-minutes");
+        for (int i = have_data && skip ? std::atoi(skip) : 0; i > 0; --i) {
+            if (g_world.clock.phase == core::Phase::kClosed) core::cmd_end_day(g_world);
+            core::tick(g_world);
+        }
+        const char* app = arg_value(argc, argv, "--ui-app");
+        if (has_arg(argc, argv, "--ui-demo") || app) {
             ui::set_active(true);
-            ui::open_app(demo_app);
+            ui::open_app(app ? ui::find_app(app) : demo_app);
             platform::InputState select{};  // оверлей заслоняет окно на снимке; SELECT вернёт его
             select.pressed = platform::kButtonSelect;
             overlay.update(0.0f, select);
@@ -117,7 +138,6 @@ int main(int argc, char** argv) {
         const bool in_minigame = minigame::running();
         if (have_ui && !in_minigame && (input.pressed & platform::kButtonStart)) {
             ui::set_active(!ui::active());
-            if (ui::active() && !ui::is_open(demo_app)) ui::open_app(demo_app);
         }
         if (in_minigame) minigame::update(dt, input);
         ui::update(dt, in_minigame ? platform::InputState{} : input);
@@ -130,6 +150,7 @@ int main(int argc, char** argv) {
                         kOutcome[static_cast<int>(result.outcome)], static_cast<int>(result.score),
                         static_cast<double>(result.quality), static_cast<unsigned>(result.duration_ms));
         }
+        if (have_data) sim_update(dt);
         audio::update();
         overlay.update(dt, input);
 

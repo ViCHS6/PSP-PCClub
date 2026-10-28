@@ -24,7 +24,7 @@ struct State {
     const char* row_fmt = nullptr;
     const char* total_fmt = nullptr;
     const char* status = nullptr;
-    const char* results[10]{};
+    const char* results[static_cast<int>(core::CmdResult::kLimit) + 1]{};
     const char* added = nullptr;
     const char* item = nullptr;
     const char* price = nullptr;
@@ -165,10 +165,13 @@ void on_open(Context&, void* user) {
     s = State{};
     const char* keys[] = {"os.shop.hardware", "os.shop.license", "os.shop.pirate", "os.shop.goods"};
     for (int i = 0; i < 4; ++i) s.categories[i] = str(keys[i]);
+    // Текст по коду CmdResult: новый код без строки здесь не соберётся.
     const char* results[] = {"os.shop.ordered", "os.shop.invalid", "os.shop.wrong_phase", "os.shop.no_money",
                              "os.shop.failed", "os.shop.failed", "os.shop.failed", "os.shop.failed",
                              "os.shop.failed", "os.shop.limit"};
-    for (int i = 0; i < 10; ++i) s.results[i] = str(results[i]);
+    static_assert(sizeof(results) / sizeof(results[0]) == sizeof(s.results) / sizeof(s.results[0]),
+                  "os.shop: строка на каждый core::CmdResult");
+    for (int i = 0; i < static_cast<int>(sizeof(results) / sizeof(results[0])); ++i) s.results[i] = str(results[i]);
     s.add = str("os.shop.add");
     s.remove = str("os.shop.remove");
     s.buy = str("os.shop.buy");

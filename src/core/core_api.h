@@ -163,7 +163,9 @@ enum class LeaveReason : uint8_t {
     kQueueFull,     // очередь полна — развернулся у входа
     kClosing,       // клуб закрылся
     kEvent,         // увёл эффект события («мама пришла»)
+    kRefused,       // админ отказал у стойки (cmd_refuse)
 };
+constexpr int kLeaveReasonCount = static_cast<int>(LeaveReason::kRefused) + 1;
 
 enum class Request : uint8_t {
     kNone,
@@ -233,12 +235,11 @@ struct DayStats {
     uint16_t arrived = 0;            // вошли в клуб
     uint16_t served = 0;             // сели играть
     uint16_t extended = 0;           // продлений
-    uint16_t left[10];               // по LeaveReason (индекс = значение)
+    uint16_t left[kLeaveReasonCount];  // по LeaveReason (индекс = значение)
     uint16_t load_minutes = 0;       // Σ минут нагрузки всех ПК
     uint16_t pc_hangs = 0;
     uint16_t pc_failures = 0;
 };
-static_assert(static_cast<int>(LeaveReason::kEvent) < 10, "DayStats::left");
 
 struct Stats {
     DayStats today;                  // текущий день, обнуляется в cmd_end_day
@@ -601,6 +602,11 @@ enum class ServeResult : uint8_t {
 //   3. оплата вперёд, посетитель → kToSeat, ПК → kBusy.
 // Броски тратят ГПСЧ только в шагах, которые реально выполняются.
 ServeResult cmd_serve(World& world, uint8_t visitor, uint8_t pc, Tariff tariff);
+
+// Отказать посетителю в очереди (любому, не только первому): уходит с kRefused (GDD §7.3).
+// Репутация и отношение постоянного клиента — как при уходе по терпению; on_action
+// visitor_left_angry. Не в очереди (state ≠ kWaiting) → kInvalid. Любая фаза, кроме kGameOver.
+CmdResult cmd_refuse(World& world, uint8_t visitor);
 
 // Решить просьбу посетителя у стойки или у его ПК:
 //   kFood — продать товар request_arg по goods_price (нет на складе → kNoStock);
