@@ -40,7 +40,7 @@
 
 | ID | Задача | Исполнитель | Зависит от | Файлы | Готово, когда | Статус |
 |---|---|---|---|---|---|---|
-| T010 | **Камера и управление.** Первое лицо, схема GDD §9.1, липкий прицел, система `Interactable` (подсветка + подсказка). | Claude | T001 | `src/game/player*`, `src/game/interact*` | На PC: можно ходить и «нажать» на объект; схема в `docs/controls.md` | todo |
+| T010 | **Камера и управление.** Первое лицо, схема GDD §9.1, липкий прицел, система `Interactable` (подсветка + подсказка). | Claude | T001 | `src/game/player*`, `src/game/interact*` | На PC: можно ходить и «нажать» на объект; схема в `docs/controls.md` | done |
 | T011 | **Форматы и конвертеры графики.** `docs/formats/mesh.md`, `texture.md`; `tools/convert_model.py` (OBJ → `.msh`: 16-бит вершины, индексы, материалы), `tools/convert_texture.py` (PNG → CLUT 4/8 бит, swizzle для PSP). **Контракт.** | Codex | — | `tools/convert_*.py`, `docs/formats/` | Тесты на Python; сконвертированы заглушки из T013 | done |
 | T012 | **Загрузчики `.msh`/`.tex`** в `src/render` для PSP и PC по T011. | Codex | T001, T011 | `src/render/mesh_*`, `src/render/texture_*` | Заглушка стола грузится и рисуется в обеих сборках | done |
 | T013 | **Процедурные заглушки.** `tools/gen_placeholders.py`: стол, ЭЛТ-монитор, системник, стул, стойка, полка, комната на 6 мест — в OBJ, в бюджетах GDD §10.3. | Codex | — | `tools/gen_placeholders.py`, `assets/placeholders/` | Все модели генерируются одной командой, отчёт о треугольниках | done |
