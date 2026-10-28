@@ -61,13 +61,19 @@ add_library(pcclub_game OBJECT
     src/game/interact_draw.cpp
     src/game/player_demo.cpp)
 
-foreach(lib pcclub_platform pcclub_render pcclub_game)
+# --- ui: ОС администратора (T030, контракт — src/ui/ui_api.h).
+add_library(pcclub_ui OBJECT
+    src/ui/ui_common.cpp
+    src/ui/ui.cpp
+    src/ui/demo_app.cpp)
+
+foreach(lib pcclub_platform pcclub_render pcclub_game pcclub_ui)
     target_link_libraries(${lib} PRIVATE pcclub_options pcclub_core)
 endforeach()
 
 add_executable(pcclub src/main.cpp)
 target_link_libraries(pcclub PRIVATE
-    pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game)
+    pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game pcclub_ui)
 
 # Демо-ресурсы лежат относительно приложения одинаково на PC и PSP.
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
@@ -249,6 +255,31 @@ endforeach()
 add_custom_target(pcclub_screen_assets ALL DEPENDS ${SCREEN_TEXTURE_OUTPUTS})
 add_dependencies(pcclub pcclub_screen_assets)
 
+# T030: шрифты UI (FNT1 + атлас TEX1 t4, docs/formats/ui.md §4) и data.pak со строками.
+set(UI_FONT_OUTPUTS)
+foreach(font font_ui12 font_mono12 font_ui14 font_ui14b)
+    add_custom_command(
+        OUTPUT ${DEMO_ASSETS}/${font}.tex ${DEMO_ASSETS}/${font}.fnt
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_texture.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/${font}.png -o ${DEMO_ASSETS}/${font}.tex --format t4
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/${font}.fnt ${DEMO_ASSETS}/${font}.fnt
+        DEPENDS tools/convert_texture.py assets/fonts/${font}.png assets/fonts/${font}.fnt
+        VERBATIM)
+    list(APPEND UI_FONT_OUTPUTS ${DEMO_ASSETS}/${font}.tex ${DEMO_ASSETS}/${font}.fnt)
+endforeach()
+file(GLOB PCCLUB_DATA_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/*.json ${CMAKE_CURRENT_SOURCE_DIR}/data/*.csv
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/events/*.json)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_data.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/data -o ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    DEPENDS tools/build_data.py ${PCCLUB_DATA_SOURCES}
+    VERBATIM)
+add_custom_target(pcclub_ui_assets ALL DEPENDS ${UI_FONT_OUTPUTS} ${CMAKE_CURRENT_BINARY_DIR}/data.pak)
+add_dependencies(pcclub pcclub_ui_assets)
+
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspaudio)
     target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
@@ -315,6 +346,17 @@ else()
         target_link_libraries(pcclub_audio_tests PRIVATE pcclub_core doctest::doctest SDL2::SDL2)
         add_dependencies(pcclub_audio_tests pcclub_demo_audio)
         add_test(NAME pcclub_audio_tests COMMAND pcclub_audio_tests)
+        target_sources(pcclub_tests PRIVATE tests/ui/test_ui_common.cpp src/ui/ui_common.cpp)
+        target_compile_definitions(pcclub_tests PRIVATE
+            PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
+        # Поведение ОС: ui.cpp с заглушками render/platform/audio внутри теста.
+        add_executable(pcclub_ui_tests tests/test_main.cpp tests/ui/test_ui_flow.cpp
+            src/ui/ui.cpp src/ui/ui_common.cpp)
+        target_compile_options(pcclub_ui_tests PRIVATE -Wall -Wextra)
+        target_compile_definitions(pcclub_ui_tests PRIVATE
+            PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
+        target_link_libraries(pcclub_ui_tests PRIVATE pcclub_core doctest::doctest)
+        add_test(NAME pcclub_ui_tests COMMAND pcclub_ui_tests)
         set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
     endif()
 endif()

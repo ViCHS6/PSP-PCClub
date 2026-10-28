@@ -153,5 +153,36 @@
   "world.pc.power_on": "Включить ПК",
   "world.pc.power_off": "Выключить ПК",
   "world.pc.reboot": "Перезагрузить ПК",
-  "world.pc.dust": "Сдуть пыль"
+  "world.pc.dust": "Сдуть пыль",
+
+  "ui.os.name": "Окна 2000 Клубная",
+
+  "ui.demo.title": "Виджеты",
+  "ui.demo.icon": "Вд",
+  "ui.demo.buttons": "Кнопки",
+  "ui.demo.accept": "Принять",
+  "ui.demo.cancel": "Отмена",
+  "ui.demo.disabled": "Нельзя",
+  "ui.demo.about": "О системе",
+  "ui.demo.clicks": "Нажатий: %d",
+  "ui.demo.pc": "ПК %d — %s",
+  "ui.demo.pc_state.free": "свободен",
+  "ui.demo.pc_state.busy": "занят",
+  "ui.demo.pc_state.hung": "завис",
+  "ui.demo.pc_state.off": "выключен",
+  "ui.demo.tariff.hour": "Почасовой",
+  "ui.demo.tariff.three": "Три часа",
+  "ui.demo.tariff.night": "Ночной пакет",
+  "ui.demo.dust": "Пыль",
+  "ui.demo.install": "Установка: %d%%",
+  "ui.demo.col.seat": "Место",
+  "ui.demo.col.game": "Игра",
+  "ui.demo.col.left": "Осталось",
+
+  "ui.about.title": "О системе",
+  "ui.about.icon": "?",
+  "ui.about.version": "Версия 1.0, клубная сборка",
+  "ui.about.controls1": "Стик — курсор, крестовина — фокус",
+  "ui.about.controls2": "× — нажать, О — закрыть, L/R — окна",
+  "ui.about.ok": "OK"
 }
