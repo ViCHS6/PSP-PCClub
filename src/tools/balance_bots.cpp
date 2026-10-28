@@ -76,6 +76,12 @@ bool usable(const World& w, uint8_t pc, Index game) {
 }
 
 void library(World& w) {
+    std::array<int, kMaxPcs> installed{};
+    for (uint8_t pc = 0; pc < w.club.seats; ++pc) {
+        for (Index g = 0; g < w.data->game_count; ++g) {
+            if (pc_has_game(w, pc, g)) ++installed[pc];
+        }
+    }
     std::array<Index, kMaxGames> ranked{};
     int count = 0;
     for (Index g = 0; g < w.data->game_count; ++g) {
@@ -92,10 +98,18 @@ void library(World& w) {
         const Index g = ranked[i];
         int suitable = 0;
         for (uint8_t pc = 0; pc < w.club.seats; ++pc) {
-            if (!usable(w, pc, g)) continue;
-            ++suitable;
-            if (!pc_has_game(w, pc, g) && free_licenses(w, g) > 0)
-                cmd_install(w, pc, g, false, kServiceQuality);
+            if (usable(w, pc, g)) ++suitable;
+        }
+        while (free_licenses(w, g) > 0) {
+            uint8_t best = kNoPc;
+            for (uint8_t pc = 0; pc < w.club.seats; ++pc) {
+                if (pc_has_game(w, pc, g) || !usable(w, pc, g)) continue;
+                // При равенстве остаётся меньший номер ПК.
+                if (best == kNoPc || installed[pc] < installed[best]) best = pc;
+            }
+            if (best == kNoPc || cmd_install(w, best, g, false, kServiceQuality) != CmdResult::kOk)
+                break;
+            ++installed[best];
         }
         const int target = std::min(suitable, static_cast<int>(std::ceil(
                                                 w.club.seats * game_value(w, g) / total)));

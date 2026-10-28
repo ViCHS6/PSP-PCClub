@@ -386,6 +386,15 @@ if(NOT PSP)
     add_dependencies(balance-runner balance_test_data)
 
     if(PCCLUB_TESTS)
+        add_executable(balance_bot_tests tests/test_main.cpp tests/tools/test_balance_bots.cpp
+            src/tools/balance_bots.cpp)
+        target_compile_options(balance_bot_tests PRIVATE -Wall -Wextra)
+        target_link_libraries(balance_bot_tests PRIVATE pcclub_core doctest::doctest)
+        target_compile_definitions(balance_bot_tests PRIVATE
+            PCCLUB_BALANCE_DATA="${CMAKE_CURRENT_BINARY_DIR}/data.pak")
+        add_dependencies(balance_bot_tests pcclub_data)
+        add_test(NAME balance_bot_tests COMMAND balance_bot_tests)
+        set_tests_properties(balance_bot_tests PROPERTIES TIMEOUT 10)
         file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/balance_smoke.cmake" CONTENT [=[
 file(MAKE_DIRECTORY "${OUT}")
 foreach(strategy passive normal aggressive)
