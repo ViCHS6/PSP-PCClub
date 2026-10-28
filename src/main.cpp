@@ -2,6 +2,7 @@
 #include "game/debug_overlay.h"
 #include "game/demo_scene.h"
 #include "platform/platform_api.h"
+#include "platform/audio_api.h"
 #include "render/render_api.h"
 
 int main(int argc, char** argv) {
@@ -11,9 +12,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    if (!audio::init(audio::Config{})) { render::shutdown(); platform::shutdown(); return 1; }
     game::DemoScene scene;
     game::DebugOverlay overlay;
     if (!scene.init()) {
+        audio::shutdown();
         render::shutdown();
         platform::shutdown();
         return 1;
@@ -28,6 +31,7 @@ int main(int argc, char** argv) {
 
         const platform::InputState& input = platform::input();
         scene.update(dt, input);
+        audio::update();
         overlay.update(dt, input);
 
         render::begin_frame(render::rgba(40, 44, 52));
@@ -36,6 +40,7 @@ int main(int argc, char** argv) {
         render::end_frame();
     }
 
+    audio::shutdown();
     render::shutdown();
     platform::shutdown();
     return 0;
