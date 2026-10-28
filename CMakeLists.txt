@@ -97,6 +97,28 @@ add_custom_target(pcclub_demo_assets ALL DEPENDS
     ${DEMO_ASSETS}/prop_desk_chipboard.msh ${DEMO_ASSETS}/demo_checker.tex)
 add_dependencies(pcclub pcclub_demo_assets)
 
+# T041: исходники заглушки и бинарные ресурсы создаются только в build/.
+target_sources(pcclub_render PRIVATE src/render/anim.cpp src/render/anim_format.cpp)
+set(ANIM_PARTS pelvis torso head upper_arm_l forearm_l upper_arm_r forearm_r thigh_l shin_l thigh_r shin_r)
+set(ANIM_OUTPUTS ${DEMO_ASSETS}/chr_placeholder.anm)
+set(ANIM_BYPRODUCTS ${DEMO_ASSETS}/chr_placeholder.anim.json)
+foreach(part IN LISTS ANIM_PARTS)
+    list(APPEND ANIM_OUTPUTS ${DEMO_ASSETS}/chr_placeholder_${part}.msh)
+    list(APPEND ANIM_BYPRODUCTS ${DEMO_ASSETS}/chr_placeholder_${part}.obj)
+endforeach()
+foreach(clip walk sit_down type)
+    list(APPEND ANIM_BYPRODUCTS ${DEMO_ASSETS}/chr_placeholder_${clip}.anim.json
+        ${DEMO_ASSETS}/chr_placeholder_${clip}.anm)
+endforeach()
+add_custom_command(
+    OUTPUT ${ANIM_OUTPUTS}
+    BYPRODUCTS ${ANIM_BYPRODUCTS}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_anim_placeholder.py -o ${DEMO_ASSETS}
+    DEPENDS tools/gen_anim_placeholder.py tools/convert_anim.py tools/convert_model.py
+    VERBATIM)
+add_custom_target(pcclub_anim_assets ALL DEPENDS ${ANIM_OUTPUTS})
+add_dependencies(pcclub pcclub_anim_assets)
+
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
     create_pbp_file(
@@ -148,5 +170,9 @@ else()
             target_link_libraries(pcclub_formula_tests_obj PRIVATE pcclub_core doctest::doctest)
         endif()
         add_test(NAME pcclub_tests COMMAND pcclub_tests)
+        target_sources(pcclub_tests PRIVATE tests/render/test_anim.cpp
+            src/render/anim.cpp src/render/anim_format.cpp)
+        add_test(NAME convert_anim_tests COMMAND ${Python3_EXECUTABLE} -B -m unittest
+            discover -s ${CMAKE_CURRENT_SOURCE_DIR}/tools/tests -p test_convert_anim.py)
     endif()
 endif()

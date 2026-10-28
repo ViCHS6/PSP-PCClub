@@ -1,12 +1,15 @@
 #include "game/demo_scene.h"
 
 #include <cmath>
+#include <cstdio>
 
 namespace game {
 namespace {
 
 using render::rgba;
 using render::Vertex;
+
+alignas(16) uint8_t g_anim_bytes[64 * 1024];
 
 // Куб 1×1×1 с центром в начале координат: 6 граней × 4 вершины, свой цвет у каждой грани.
 render::MeshId create_cube() {
@@ -58,6 +61,17 @@ bool DemoScene::init() {
     floor_ = create_floor();
     checker_ = render::texture_load_file("assets/demo_checker.tex");
     desk_ = render::model_load_file("assets/prop_desk_chipboard.msh");
+    render::AnimArena arena{g_anim_bytes, sizeof(g_anim_bytes), 0};
+    if (!render::anim_load_file(arena, "assets/chr_placeholder.anm", &animation_)) return false;
+    for (uint16_t i = 0; i < animation_.view.part_count; ++i) {
+        render::format::AnimPart part{};
+        render::format::anim_part(animation_.view, i, &part);
+        char path[96];
+        std::snprintf(path, sizeof(path), "assets/chr_placeholder_%s.msh", part.name);
+        parts_[i] = render::model_load_file(path);
+        if (parts_[i] == render::kInvalidModel) return false;
+    }
+    if (!render::anim_start(anim_state_, animation_, render::anim_find_clip(animation_, "walk"))) return false;
     return cube_ != render::kInvalidMesh && floor_ != render::kInvalidMesh &&
            checker_ != render::kNoTexture && desk_ != render::kInvalidModel;
 }
@@ -74,6 +88,12 @@ void DemoScene::update(float dt, const platform::InputState& input) {
     if (pitch_ > 1.4f) pitch_ = 1.4f;
     if (input.pressed & platform::kButtonCross) auto_spin_ = !auto_spin_;
     if (auto_spin_) spin_ += dt;
+    if (input.pressed & platform::kButtonSquare) {
+        const char* clips[] = {"walk", "sit_down", "type"};
+        clip_index_ = static_cast<uint16_t>((clip_index_ + 1) % 3);
+        render::anim_play(anim_state_, render::anim_find_clip(animation_, clips[clip_index_]));
+    }
+    render::anim_update(anim_state_, dt);
 }
 
 void DemoScene::draw() const {
@@ -94,6 +114,10 @@ void DemoScene::draw() const {
                              core::mat4_rotate_x(spin_ * 0.6f);
     render::draw_mesh(cube_, model);
     render::draw_model(desk_, core::mat4_translate({0.8f, 0, 0}));
+    core::Mat4 pose[render::format::kAnimMaxParts];
+    const core::Mat4 character = core::mat4_translate({0.8f, 0, 0.6f}) * core::mat4_rotate_y(core::kPi);
+    if (render::anim_pose(anim_state_, character, pose, render::format::kAnimMaxParts))
+        render::anim_draw(animation_, parts_, pose, render::format::kAnimMaxParts);
 }
 
 }  // namespace game
