@@ -15,7 +15,7 @@ from PIL import Image
 
 CHARSET = [
     *range(0x20, 0x7F), *range(0x410, 0x450), 0x401, 0x451,
-    *map(ord, "№«»—–…·°×←↑→↓„“”‘’█░₽"),
+    *map(ord, "№«»—–…·°×←↑→↓„“”‘’█░₽○△□"),
 ]
 ROOT = Path(__file__).resolve().parents[1]
 HEADER = struct.Struct("<4sHHHHBBBBHH12s")
@@ -335,7 +335,7 @@ def preview(metrics_path, output):
              "СЪЕШЬ ЖЕ ЕЩЁ ЭТИХ МЯГКИХ ФРАНЦУЗСКИХ БУЛОК",
              "0123456789 — 1 500 ₽ № «Клуб» …",
              "".join(map(chr, range(0x20, 0x7F))),
-             "№ « » — – … · ° × ← ↑ → ↓ „ “ ” ‘ ’ █ ░ ₽"]
+             "№ « » — – … · ° × ← ↑ → ↓ „ “ ” ‘ ’ █ ░ ₽ ○ △ □"]
     resolved = [[lookup.get(ord(c), records[fallback]) for c in line] for line in lines]
     width = max(sum(record[7] for record in line) for line in resolved)
     canvas = Image.new("RGBA", (width + 16, len(lines) * (height + 4) + 12), (24, 28, 36, 255))

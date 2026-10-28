@@ -79,7 +79,7 @@ TEST_CASE("ui: настоящий font_ui12 разбирается, ширины
     static FontData f;
     const char* error = nullptr;
     REQUIRE(font_parse(b.data(), b.size(), &f, &error));
-    CHECK(f.glyph_count == 182);
+    CHECK(f.glyph_count == 185);
     CHECK(f.line_height == 12);
     CHECK(f.baseline == 10);
     CHECK(std::strcmp(f.atlas_name, "font_ui12") == 0);
