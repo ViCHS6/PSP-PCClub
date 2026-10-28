@@ -75,6 +75,11 @@ add_library(pcclub_ui OBJECT
 # и в src/minigames/registry.cpp (docs/formats/minigame.md §8).
 set(PCCLUB_MINIGAME_SOURCES
     src/minigames/example/example.cpp)
+set(PCCLUB_SERVICE_MINIGAME_SOURCES
+    src/minigames/service_reboot/service_reboot.cpp
+    src/minigames/service_clean/service_clean.cpp
+    src/minigames/service_install/service_install.cpp)
+list(APPEND PCCLUB_MINIGAME_SOURCES ${PCCLUB_SERVICE_MINIGAME_SOURCES})
 add_library(pcclub_minigames OBJECT
     src/minigames/host.cpp
     src/minigames/registry.cpp
@@ -381,6 +386,12 @@ else()
         target_compile_options(pcclub_minigame_tests PRIVATE -Wall -Wextra)
         target_link_libraries(pcclub_minigame_tests PRIVATE pcclub_core doctest::doctest)
         add_test(NAME pcclub_minigame_tests COMMAND pcclub_minigame_tests)
+        add_executable(pcclub_service_tests tests/test_main.cpp
+            tests/minigames/test_service_games.cpp ${PCCLUB_SERVICE_MINIGAME_SOURCES})
+        target_compile_options(pcclub_service_tests PRIVATE -Wall -Wextra)
+        target_compile_definitions(pcclub_service_tests PRIVATE DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS)
+        target_link_libraries(pcclub_service_tests PRIVATE pcclub_options pcclub_core doctest::doctest)
+        add_test(NAME pcclub_service_tests COMMAND pcclub_service_tests)
         set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
     endif()
 endif()
