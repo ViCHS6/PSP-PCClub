@@ -27,10 +27,13 @@ constexpr int kResultCancelled = 1;
 constexpr unsigned kBackground = 0xFF201C18u;  // тёмный фон под диалогом, ABGR
 
 alignas(16) uint32_t g_list[64];
-// Копия данных для записи. При размере структуры 0x600 (прошивка ≥ 2.00) утилита шифрует данные
-// и дополняет их до 16 байт — буфер ровно по размеру данных настоящая прошивка отвергает
-// (0x80110388, PPSSPP — нет). Поэтому dataBufSize — вся ёмкость слота.
+// Копия данных для записи: утилите — буфер на всю ёмкость слота, не ровно по данным.
 alignas(64) uint8_t g_write_buf[kSaveCapacity + 64];
+
+// secureVersion структуры 0x600 (_PSP_FW_VERSION ≥ 200): 0, 2, 3 требуют ключ игры (key), без него
+// прошивка отвергает запись — 0x80110388 на Go (проверка как MissingRequiredKey в PPSSPP; сам
+// эмулятор такую запись пропускал). 1 — шифрование без ключа игры: ключа у нас нет.
+constexpr uint32_t kSecureNoKey = 1;
 int g_last_code = 0;  // save_debug.h
 SceUtilitySavedataParam g_param;
 
@@ -48,6 +51,7 @@ void prepare(PspUtilitySavedataMode mode, void* buf, size_t buf_size, size_t dat
     g_param.base.soundThread = 0x10;
     g_param.mode = mode;
     g_param.overwrite = 1;
+    g_param.secureVersion = kSecureNoKey;
     g_param.focus = PSP_UTILITY_SAVEDATA_FOCUS_LATEST;
     copy(g_param.gameName, sizeof(g_param.gameName), kGameName);
     copy(g_param.saveName, sizeof(g_param.saveName), kSaveName);
