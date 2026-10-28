@@ -1,6 +1,6 @@
 // Точка входа — общая для PSP и PC.
+#include "game/club_scene.h"
 #include "game/debug_overlay.h"
-#include "game/player_demo.h"
 #include "platform/platform_api.h"
 #include "platform/audio_api.h"
 #include "render/render_api.h"
@@ -84,15 +84,7 @@ int main(int argc, char** argv) {
     }
 
     if (!audio::init(audio::Config{})) { render::shutdown(); platform::shutdown(); return 1; }
-    // T010: демо управления; до T014 — вместо DemoScene (T001/T012/T041), та остаётся в сборке.
-    static game::PlayerDemo scene;  // статически: пулы Colliders/InteractSystem не на стеке
     game::DebugOverlay overlay;
-    if (!scene.init()) {
-        audio::shutdown();
-        render::shutdown();
-        platform::shutdown();
-        return 1;
-    }
 
     // ОС администратора: демо по START (PC — ещё и флагом --ui-demo, для снимков).
     const bool have_data = load_data();
@@ -123,6 +115,18 @@ int main(int argc, char** argv) {
         }
     }
 
+    // T014: зал на 6 мест (вместо демо T010 PlayerDemo; DemoScene/PlayerDemo остаются в сборке).
+    // Мир демо не тикает — club_demo_world расставляет состояния ПК, чтобы было что обслужить.
+    static game::ClubScene scene;  // статически: пулы Colliders/InteractSystem не на стеке
+    if (have_data) game::club_demo_world(g_world);
+    if (!scene.init({have_data ? &g_world : nullptr, have_data ? &g_data : nullptr})) {
+        ui::shutdown();
+        audio::shutdown();
+        render::shutdown();
+        platform::shutdown();
+        return 1;
+    }
+
     const char* cli_game = have_ui ? arg_value(argc, argv, "--minigame") : nullptr;
     bool cli_running = cli_game && start_cli_minigame(cli_game);
 
@@ -142,6 +146,10 @@ int main(int argc, char** argv) {
         if (in_minigame) minigame::update(dt, input);
         ui::update(dt, in_minigame ? platform::InputState{} : input);
         scene.update(dt, ui::active() || in_minigame ? platform::InputState{} : input);
+        if (have_ui && scene.take_os_request()) {  // × у стойки; переход камеры — T033
+            ui::set_active(true);
+            if (!ui::is_open(demo_app)) ui::open_app(demo_app);
+        }
         minigame::Result result;
         if (cli_running && !minigame::running() && minigame::take_result(&result)) {
             cli_running = false;
@@ -155,7 +163,7 @@ int main(int argc, char** argv) {
         overlay.update(dt, input);
 
         render::begin_frame(render::rgba(40, 44, 52));
-        scene.draw();
+        scene.draw(!ui::active() && !minigame::running());  // подсказки мира — не под ОС и мини-игрой
         ui::draw();
         minigame::draw();
         overlay.draw();

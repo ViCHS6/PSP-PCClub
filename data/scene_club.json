@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "room": {
+    "size": [8.0, 2.8, 6.0],
+    "tile": 0.5,
+    "wall_split": 1.4,
+    "door": {"x": [3.4, 4.6], "height": 2.1},
+    "window": {"z": [2.0, 4.0], "y": [1.4, 2.4]},
+    "colors": {
+      "floor": [122, 86, 56],
+      "floor_alt": [94, 65, 42],
+      "wall_low": [94, 122, 90],
+      "wall_high": [217, 210, 188],
+      "ceiling": [191, 183, 159],
+      "window": [200, 214, 216],
+      "doorway": [40, 34, 28]
+    }
+  },
+  "light": {
+    "ambient": 0.55,
+    "lamps": [
+      {"pos": [2.0, 2.78, 2.0], "size": [1.0, 0.3], "color": [232, 240, 240], "power": 1.1, "radius": 5.0},
+      {"pos": [4.2, 2.78, 2.0], "size": [1.0, 0.3], "color": [232, 240, 240], "power": 1.1, "radius": 5.0},
+      {"pos": [6.4, 2.78, 2.0], "size": [1.0, 0.3], "color": [232, 240, 240], "power": 1.1, "radius": 5.0},
+      {"pos": [2.0, 2.78, 4.6], "size": [1.0, 0.3], "color": [232, 240, 240], "power": 1.1, "radius": 5.0},
+      {"pos": [4.2, 2.78, 4.6], "size": [1.0, 0.3], "color": [232, 240, 240], "power": 1.1, "radius": 5.0},
+      {"pos": [6.4, 2.78, 4.6], "size": [1.0, 0.3], "color": [232, 240, 240], "power": 1.1, "radius": 5.0},
+      {"pos": [0.9, 2.78, 1.0], "size": [0.4, 0.4], "color": [255, 217, 160], "power": 0.8, "radius": 3.5}
+    ]
+  },
+  "player": {"pos": [4.0, 0.0, 0.8], "yaw": 180},
+  "workplace": {
+    "desk": "prop_desk_chipboard",
+    "monitor": "prop_crt17",
+    "case": "prop_pc_case",
+    "chair": "prop_chair_office",
+    "monitor_pos": [-0.12, 0.75, -0.08],
+    "screen_pos": [0.0, 0.275, 0.199],
+    "case_pos": [0.37, 0.75, -0.05],
+    "chair_pos": [0.0, 0.0, 0.85],
+    "chair_yaw": 180,
+    "reach": 2.0,
+    "case_reach": 2.0
+  },
+  "seats": [
+    {"id": 1, "pc": 0, "pos": [2.0, 0.0, 2.9], "yaw": 180},
+    {"id": 2, "pc": 1, "pos": [4.2, 0.0, 2.9], "yaw": 180},
+    {"id": 3, "pc": 2, "pos": [6.4, 0.0, 2.9], "yaw": 180},
+    {"id": 4, "pc": 3, "pos": [2.0, 0.0, 5.5], "yaw": 180},
+    {"id": 5, "pc": 4, "pos": [4.2, 0.0, 5.5], "yaw": 180},
+    {"id": 6, "pc": 5, "pos": [6.4, 0.0, 5.5], "yaw": 180}
+  ],
+  "admin": {
+    "counter": "prop_admin_counter",
+    "pos": [1.15, 0.0, 1.0],
+    "yaw": 90,
+    "monitor_pos": [-0.25, 1.05, -0.05],
+    "monitor_yaw": 180,
+    "case_pos": [0.5, 0.515, -0.1],
+    "case_yaw": 180,
+    "reach": 2.0
+  },
+  "props": [
+    {"model": "prop_shelf_discs", "pos": [6.7, 0.0, 0.15], "yaw": 0, "collide": true}
+  ]
+}
