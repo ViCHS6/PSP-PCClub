@@ -291,7 +291,7 @@ AppId cashier_register() {
     d.title_key = "ui.cashier.title";
     d.icon_text = "ui.cashier.icon";
     d.icon_color = render::rgba(0xC0, 0x80, 0x20);
-    d.flags = kAppOnDesktop | kAppMaximized | kAppNoClose;  // ○ — выход из ОС (game/admin_desk.h)
+    d.flags = kAppOnDesktop | kAppMaximized;
     d.on_open = on_open;
     d.on_frame = on_frame;
     d.user = &g_state;

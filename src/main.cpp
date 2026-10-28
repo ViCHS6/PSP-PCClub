@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
             ui::set_active(!ui::active());
         }
         if (in_minigame) minigame::update(dt, input);
-        desk.update(dt, in_minigame ? platform::InputState{} : input, world);  // до ui: ○ в Кассе
+        desk.update(dt, world);
         ui::update(dt, in_minigame ? platform::InputState{} : input);
         const bool world_input = desk.world_input() && !ui::active() && !in_minigame;
         scene.update(dt, world_input ? input : platform::InputState{});
