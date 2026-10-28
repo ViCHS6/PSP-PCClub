@@ -1,5 +1,5 @@
 #pragma once
-// Игрок от первого лица (T010): ходьба и поворот по GDD §9.1, ограничение наклона,
+// Игрок от первого лица (T010): ходьба крестовиной и обзор стиком по GDD §9.1, ограничение наклона,
 // коллизия с AABB, притяжение липкого прицела.
 //
 // Владение: Player и Colliders — значения с фиксированными массивами, живут у сцены.
@@ -27,20 +27,21 @@ namespace game {
 // Числа «ощущений» управления. Это не баланс экономики, а подстройка под стик PSP:
 // проверяются руками на Go (T015), поэтому лежат здесь константами, а не в data/.
 namespace controls {
-constexpr float kWalkSpeed = 1.4f;          // м/с — шаг взрослого
+// Схема после проверки на Go (T015): крестовина — ходьба, стик — только обзор.
+constexpr float kWalkSpeed = 1.4f;          // м/с, крестовина ↑/↓ — шаг взрослого
 constexpr float kRunSpeed = 2.6f;           // м/с с R; зал 8×6 м — диагональ за ~4 с (GDD §9.1: ≤ 5–7 с)
-constexpr float kStrafeSpeed = 0.8f;        // м/с, крестовина ←/→ — «слегка вбок», R не ускоряет (T015)
-constexpr float kTurnSpeed = 2.4f;          // рад/с при стике до упора
-constexpr float kLookYawSpeed = 2.0f;       // рад/с, L + стик
-constexpr float kLookPitchSpeed = 1.6f;     // рад/с, L + стик
-constexpr float kStickCurve = 2.0f;         // степень отклика стика: мелкие движения — точнее
+constexpr float kStrafeSpeed = 0.8f;        // м/с, крестовина ←/→ — «слегка вбок», R не ускоряет
+constexpr float kLookYawSpeed = 2.4f;       // рад/с, стик X до упора (≈ 137°/с)
+constexpr float kLookPitchSpeed = 1.5f;     // рад/с, стик Y до упора
+constexpr float kLookDeadZone = 0.08f;      // доля хода после мёртвой зоны платформы (0,2): дрожь стика Go
+constexpr float kLookLinear = 0.3f;         // отклик = 0,3·a + 0,7·a²: малый наклон — точный доворот,
+                                            // но без «залипания» чистого квадрата у центра
 constexpr float kPitchMin = -1.05f;         // −60°: вниз — на клавиатуру на столе
 constexpr float kPitchMax = 0.87f;          // +50°: вверх — на полку и часы
-constexpr float kPitchNeutral = -0.14f;     // −8°: куда возвращается взгляд при ходьбе
-constexpr float kPitchReturn = 2.5f;        // 1/с — скорость возврата наклона при ходьбе
+constexpr float kPitchNeutral = -0.14f;     // −8°: наклон по умолчанию в reset()
 constexpr float kAimPull = 4.75f;           // 1/с — притяжение к цели (T015 на Go: −5 % от 5,0)
-constexpr float kAimPullMaxInput = 0.6f;    // при повороте стика сильнее — притяжения нет (вырваться)
-constexpr float kAimFriction = 0.57f;       // множитель поворота при цели (T015: замедление 45 % → 43 %)
+constexpr float kAimPullFade = 0.3f;        // |стик| ≥ этого — притяжения нет; между 0 и им — линейно слабее
+constexpr float kAimFriction = 0.57f;       // множитель скорости обзора, пока есть цель
 constexpr float kEyeHeight = 1.6f;          // м — глаза стоящего взрослого
 constexpr float kRadius = 0.25f;            // м — радиус игрока в плоскости XZ
 constexpr float kHeight = 1.75f;            // м — для отбора препятствий по высоте
@@ -77,8 +78,8 @@ public:
     void reset(core::Vec3 position, float yaw, float pitch = controls::kPitchNeutral);
 
     // aim_point — точка липкого прицела с прошлого кадра или nullptr.
-    // L удерживается — стик управляет только взглядом (обзор), иначе Y — ходьба, X — поворот.
-    // Крестовина ←/→ — шаг вбок, в любом режиме (в том числе с L).
+    // Крестовина ↑/↓ — вперёд/назад (R — бег), ←/→ — шаг вбок, диагональ нормируется.
+    // Стик — обзор: X — поворот, Y — наклон. L не используется.
     void update(float dt, const platform::InputState& input, const Colliders& colliders,
                 const core::Vec3* aim_point);
 
@@ -95,7 +96,8 @@ private:
     float pitch_ = controls::kPitchNeutral;
 };
 
-// Знак сохраняется, |v| возводится в степень kStickCurve.
+// Отклик стика обзора: мёртвая зона kLookDeadZone, затем kLookLinear·a + (1 − kLookLinear)·a².
+// Знак сохраняется, |v| ≥ 1 → ±1.
 float stick_response(float v);
 
 // Разница углов a − b, приведённая к (−π, π].

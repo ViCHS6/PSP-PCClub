@@ -5,7 +5,12 @@
 namespace game {
 
 float stick_response(float v) {
-    const float a = std::pow(std::fabs(v), controls::kStickCurve);
+    using namespace controls;
+    float a = std::fabs(v);
+    if (a <= kLookDeadZone) return 0.0f;
+    a = (a - kLookDeadZone) / (1.0f - kLookDeadZone);
+    if (a > 1.0f) a = 1.0f;
+    a = kLookLinear * a + (1.0f - kLookLinear) * a * a;
     return v < 0.0f ? -a : a;
 }
 
@@ -75,57 +80,51 @@ core::Mat4 Player::view() const {
 void Player::update(float dt, const platform::InputState& input, const Colliders& colliders,
                     const core::Vec3* aim_point) {
     using namespace controls;
-    const bool look = (input.held & platform::kButtonL) != 0;
-    const float sx = stick_response(input.stick_x);
-    const float sy = stick_response(input.stick_y);
+    // Обзор стиком (GDD §9.1). Над целью медленнее — легче остановиться на предмете.
     const float friction = aim_point ? kAimFriction : 1.0f;
+    yaw_ -= stick_response(input.stick_x) * kLookYawSpeed * friction * dt;
+    pitch_ += stick_response(input.stick_y) * kLookPitchSpeed * friction * dt;
 
-    float walk = 0.0f;
-    if (look) {
-        // GDD §9.1: L + стик — свободный обзор, без ходьбы.
-        yaw_ -= sx * kLookYawSpeed * friction * dt;
-        pitch_ += sy * kLookPitchSpeed * friction * dt;
-    } else {
-        yaw_ -= sx * kTurnSpeed * friction * dt;
-        walk = sy;
-    }
-
-    // Липкий прицел: тянем взгляд к цели, пока игрок не крутит стик сильно.
-    const float turn_input = std::fabs(input.stick_x) + (look ? std::fabs(input.stick_y) : 0.0f);
-    if (aim_point && turn_input < kAimPullMaxInput) {
+    // Липкий прицел не борется с ручным обзором: чем сильнее отклонён стик, тем слабее
+    // притяжение, с |стик| ≥ kAimPullFade его нет совсем.
+    const float stick = std::fmax(std::fabs(input.stick_x), std::fabs(input.stick_y));
+    const float pull = 1.0f - stick / kAimPullFade;
+    if (aim_point && pull > 0.0f) {
         const core::Vec3 to = *aim_point - eye();
         const float flat = std::sqrt(to.x * to.x + to.z * to.z);
         if (flat > 1e-3f) {
             const float target_yaw = std::atan2(-to.x, -to.z);
             const float target_pitch = std::atan2(to.y, flat);
-            const float k = 1.0f - std::exp(-kAimPull * dt);
+            const float k = 1.0f - std::exp(-kAimPull * pull * dt);
             yaw_ += angle_delta(target_yaw, yaw_) * k;
             pitch_ += (target_pitch - pitch_) * k;
         }
-    } else if (!look && std::fabs(walk) > 0.3f) {
-        // При ходьбе без цели взгляд возвращается к горизонту: на одном стике наклон иначе не поправить.
-        const float k = 1.0f - std::exp(-kPitchReturn * dt);
-        pitch_ += (kPitchNeutral - pitch_) * k;
     }
 
     if (pitch_ < kPitchMin) pitch_ = kPitchMin;
     if (pitch_ > kPitchMax) pitch_ = kPitchMax;
     yaw_ = angle_delta(yaw_, 0.0f);
 
-    if (walk != 0.0f) {
+    // Ходьба крестовиной: вперёд — (−sin, −cos), вправо — (cos, −sin) при данном yaw.
+    float move = 0.0f, side = 0.0f;
+    if (input.held & platform::kButtonUp) move += 1.0f;
+    if (input.held & platform::kButtonDown) move -= 1.0f;
+    if (input.held & platform::kButtonRight) side += 1.0f;
+    if (input.held & platform::kButtonLeft) side -= 1.0f;
+    if (move != 0.0f || side != 0.0f) {
         const float speed = (input.held & platform::kButtonR) ? kRunSpeed : kWalkSpeed;
-        const float step = walk * speed * dt;
-        position_.x += -std::sin(yaw_) * step;
-        position_.z += -std::cos(yaw_) * step;
-    }
-    float strafe = 0.0f;
-    if (input.held & platform::kButtonRight) strafe += 1.0f;
-    if (input.held & platform::kButtonLeft) strafe -= 1.0f;
-    if (strafe != 0.0f) {
-        // Вправо от взгляда при yaw: (cos, 0, −sin).
-        const float step = strafe * kStrafeSpeed * dt;
-        position_.x += std::cos(yaw_) * step;
-        position_.z += -std::sin(yaw_) * step;
+        float fwd = move * speed;
+        float right = side * kStrafeSpeed;
+        if (move != 0.0f && side != 0.0f) {
+            // Диагональ не быстрее прямого шага.
+            const float len = std::sqrt(fwd * fwd + right * right);
+            const float scale = (speed > kStrafeSpeed ? speed : kStrafeSpeed) / len;
+            fwd *= scale;
+            right *= scale;
+        }
+        const float s = std::sin(yaw_), c = std::cos(yaw_);
+        position_.x += (-s * fwd + c * right) * dt;
+        position_.z += (-c * fwd - s * right) * dt;
     }
     position_ = colliders.resolve(position_, kRadius);
 }
