@@ -49,6 +49,31 @@ TEST_CASE("player: R ускоряет, стик назад — назад") {
     CHECK(p.position().z > 1.0f);
 }
 
+TEST_CASE("player: крестовина ←/→ — шаг вбок без поворота, медленнее ходьбы") {
+    Player p;
+    Colliders c;
+    p.reset({0, 0, 0}, 0.0f);
+    run(p, stick(0, 0, platform::kButtonRight), c, 1.0f);
+    CHECK(p.position().x == doctest::Approx(controls::kStrafeSpeed).epsilon(0.05));
+    CHECK(p.position().z == doctest::Approx(0.0f));
+    CHECK(p.yaw() == doctest::Approx(0.0f));
+    CHECK(controls::kStrafeSpeed < controls::kWalkSpeed);
+
+    // Повёрнуты налево (взгляд в −X): «вправо» — это −Z.
+    p.reset({0, 0, 0}, core::kPi * 0.5f);
+    run(p, stick(0, 0, platform::kButtonRight), c, 1.0f);
+    CHECK(p.position().z < -0.7f);
+    p.reset({0, 0, 0}, 0.0f);
+    run(p, stick(0, 0, platform::kButtonLeft | platform::kButtonRight), c, 1.0f);
+    CHECK(p.position().x == doctest::Approx(0.0f));
+    // Шаг вбок упирается в препятствие, как и ходьба.
+    REQUIRE(c.add({{0.5f, 0, -1}, {1.0f, 1.0f, 1}}));
+    p.reset({0, 0, 0}, 0.0f);
+    run(p, stick(0, 0, platform::kButtonLeft), c, 0.1f);
+    run(p, stick(0, 0, platform::kButtonRight), c, 2.0f);
+    CHECK(p.position().x == doctest::Approx(0.5f - controls::kRadius).epsilon(0.01));
+}
+
 TEST_CASE("player: стик вправо поворачивает направо (yaw убывает)") {
     Player p;
     Colliders c;
