@@ -1,6 +1,6 @@
 // Точка входа — общая для PSP и PC.
 #include "game/debug_overlay.h"
-#include "game/demo_scene.h"
+#include "game/player_demo.h"
 #include "platform/platform_api.h"
 #include "platform/audio_api.h"
 #include "render/render_api.h"
@@ -13,7 +13,8 @@ int main(int argc, char** argv) {
     }
 
     if (!audio::init(audio::Config{})) { render::shutdown(); platform::shutdown(); return 1; }
-    game::DemoScene scene;
+    // T010: демо управления; до T014 — вместо DemoScene (T001/T012/T041), та остаётся в сборке.
+    static game::PlayerDemo scene;  // статически: пулы Colliders/InteractSystem не на стеке
     game::DebugOverlay overlay;
     if (!scene.init()) {
         audio::shutdown();
