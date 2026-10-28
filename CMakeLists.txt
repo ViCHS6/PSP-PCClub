@@ -69,7 +69,11 @@ add_library(pcclub_ui OBJECT
     src/ui/apps/shop.cpp
     src/ui/apps/mail.cpp
     src/ui/apps/ledger.cpp
-    src/ui/apps/records.cpp)
+    src/ui/apps/records.cpp
+    src/ui/apps/cashier.cpp
+    src/ui/apps/network.cpp
+    src/ui/apps/network_minigames.cpp
+    src/ui/apps/os_apps.cpp)
 
 # --- minigames: SDK мини-игр (T050, контракт — src/minigames/sdk.h). Новая игра — сюда
 # и в src/minigames/registry.cpp (docs/formats/minigame.md §8).
@@ -381,6 +385,15 @@ else()
             PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
         target_link_libraries(pcclub_ui_tests PRIVATE pcclub_core doctest::doctest)
         add_test(NAME pcclub_ui_tests COMMAND pcclub_ui_tests)
+        # Касса и Сеть (T031): настоящий data.pak и ядро, заглушки виджетов внутри теста.
+        add_executable(pcclub_os_tests tests/test_main.cpp tests/ui/test_cashier_network.cpp
+            src/ui/apps/cashier.cpp src/ui/apps/network.cpp src/ui/ui_common.cpp)
+        target_compile_options(pcclub_os_tests PRIVATE -Wall -Wextra)
+        target_compile_definitions(pcclub_os_tests PRIVATE
+            PCCLUB_DATA_PAK="${CMAKE_CURRENT_BINARY_DIR}/data.pak")
+        target_link_libraries(pcclub_os_tests PRIVATE pcclub_core doctest::doctest)
+        add_dependencies(pcclub_os_tests pcclub_ui_assets)
+        add_test(NAME pcclub_os_tests COMMAND pcclub_os_tests)
         # Хост и игры SDK (T050): заглушки render/ui внутри теста.
         add_executable(pcclub_minigame_tests tests/test_main.cpp tests/minigames/test_host.cpp
             src/minigames/host.cpp ${PCCLUB_MINIGAME_SOURCES})
