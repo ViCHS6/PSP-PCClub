@@ -23,13 +23,9 @@ void AdminDesk::enter(const core::World* world) {
     if (world) timer_.start(*world);
 }
 
-void AdminDesk::update(float dt, const platform::InputState& input, const core::World* world) {
-    // Касса — kAppNoClose: ○ в ней не закрывает окно, а выводит из ОС. ○ на рабочем столе
-    // (или START) выключает ОС сам — тогда просто выезжаем.
-    const bool circle = (input.pressed & platform::kButtonCircle) && ui::active() && ui::active_app() == cashier_;
+void AdminDesk::update(float dt, const core::World* world) {
     switch (state_) {
     case State::kWorld:
-        if (circle) ui::set_active(false);  // ОС открыли по START — выход без камеры
         break;
     case State::kEntering:
         t_ += dt / desk::kEnterTime;
@@ -45,7 +41,7 @@ void AdminDesk::update(float dt, const platform::InputState& input, const core::
         }
         break;
     case State::kOs:
-        if (circle) ui::set_active(false);
+        // ○ в Кассе закрывает её, ○ на рабочем столе (или START) выключает ОС — выезжаем.
         if (!ui::active()) {
             state_ = State::kLeaving;
             timer_.stop();

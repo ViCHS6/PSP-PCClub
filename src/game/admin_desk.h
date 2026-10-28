@@ -1,13 +1,14 @@
 #pragma once
 // Стойка администратора ↔ ОС (T033, GDD §9.2): × у стойки — камера въезжает в монитор, ОС
-// включается с открытой Кассой; ○ в Кассе (или на рабочем столе) — камера выезжает обратно.
+// включается с открытой Кассой. ○ в Кассе закрывает её (рабочий стол со значками), ○ на рабочем
+// столе выключает ОС — камера выезжает обратно.
 // Здесь же замер быстрого сценария обслуживания (цель GDD §9.2, §11.2: ≤ 4 с) для оверлея.
 //
 // Владение: AdminDesk — значение у main; World — у вызывающего. Память в кадре не выделяется.
 //
 // Кадр (main):
 //
-//     desk.update(dt, input, world);   // ДО ui::update: ○ в Кассе — выход
+//     desk.update(dt, world);
 //     ui::update(...);
 //     scene.update(dt, desk.world_input() && !ui::active() ? input : platform::InputState{});
 //     if (scene.take_os_request()) desk.enter(world);
@@ -102,7 +103,7 @@ public:
 
     // × у стойки. Игнорируется, если камера уже едет или ОС включена.
     void enter(const core::World* world);
-    void update(float dt, const platform::InputState& input, const core::World* world);
+    void update(float dt, const core::World* world);
 
     State state() const { return state_; }
     bool world_input() const { return state_ == State::kWorld; }

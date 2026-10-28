@@ -241,9 +241,12 @@ void close_window(AppId app) {
 }
 
 // Окно под точкой экрана (сверху вниз), иначе рабочий стол.
+// Рабочий стол выбран L/R — развёрнутые окна прячутся, иначе стол со значками под ними не виден.
+bool hidden(int index) { return g.desktop_active && (g_windows[index].desc.flags & kAppMaximized); }
+
 int window_at(float x, float y) {
     for (int i = g.z_count - 1; i >= 0; --i)
-        if (contains(g_windows[g.z[i]].frame, x, y)) return g.z[i];
+        if (!hidden(g.z[i]) && contains(g_windows[g.z[i]].frame, x, y)) return g.z[i];
     return kDesktop;
 }
 
@@ -666,7 +669,7 @@ void draw() {
     const int z_count = g.z_count;
     std::memcpy(z, g.z, sizeof(z));
     for (int i = 0; i < z_count; ++i)
-        if (g_windows[z[i]].open) run_window(z[i], act == z[i]);
+        if (g_windows[z[i]].open && !hidden(z[i])) run_window(z[i], act == z[i]);
 
     if (g.cursor_tex != render::kNoTexture) {
         const render::Sprite s{static_cast<int16_t>(g.cx), static_cast<int16_t>(g.cy), 16, 16, 0, 0, 16, 16,

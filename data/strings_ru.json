@@ -401,7 +401,7 @@
   "ui.cashier.resolved": "Просьбу выполнили.",
   "ui.cashier.no_stock": "Такого на складе нет.",
   "ui.cashier.req_elsewhere": "Это решается в «Сети» или у самого ПК.",
-  "ui.cashier.hint": "←/→ тариф · ↑/↓ место · × посадить · □ отказать · ○ выйти",
+  "ui.cashier.hint": "←/→ тариф · ↑/↓ место · × посадить · □ отказать · ○ закрыть",
   "ui.cashier.sessions_hint": "× по строке — выдать еду, помочь",
   "ui.network.title": "Сеть",
   "ui.network.icon": "Се",
