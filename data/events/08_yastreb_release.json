@@ -11,9 +11,9 @@
   "choices": [
     {
       "text": "ev.yastreb_release.buy",
-      "requires": [{ "var": "money", "op": ">=", "val": 900 }],
+      "requires": [{ "var": "money", "op": ">=", "val": 650 }],
       "effects": [
-        { "type": "money", "val": -900 },
+        { "type": "money", "val": -650 },
         { "type": "unlock", "id": "yastreb_shturmovik" },
         { "type": "modifier", "target": "pop:yastreb_shturmovik", "mult": 1.3, "days": 14 }
       ]

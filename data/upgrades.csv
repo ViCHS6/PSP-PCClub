@@ -1,6 +1,6 @@
 id,kind,name,level,archetype,requires,days,price,cost_month,cost_day,cost_hour,cost_minute,value
-hall_6,hall,upg.hall_6.name,1,,,,0,12000,,,,6
-hall_10,hall,upg.hall_10.name,2,,hall_6,,15000,18000,,,,10
+hall_6,hall,upg.hall_6.name,1,,,,0,14500,,,,6
+hall_10,hall,upg.hall_10.name,2,,hall_6,,8000,16000,,,,10
 hall_16,hall,upg.hall_16.name,3,,hall_10,,40000,28000,,,,16
 inet_dialup,internet,upg.inet_dialup.name,1,,,,0,,,,0.5,56
 inet_64,internet,upg.inet_64.name,2,,,,3000,4000,,,,64

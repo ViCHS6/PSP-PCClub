@@ -5,7 +5,7 @@
     "ref": "Counter-Strike 1.3",
     "genre": "shooter_team",
     "release": "2001-06-01",
-    "price_license": 900,
+    "price_license": 650,
     "price_pirate": 70,
     "req": {
       "cpu": 40,
@@ -35,7 +35,7 @@
     "ref": "Diablo II: LoD",
     "genre": "arpg",
     "release": "2001-07-01",
-    "price_license": 1100,
+    "price_license": 750,
     "price_pirate": 80,
     "req": {
       "cpu": 30,
@@ -63,7 +63,7 @@
     "ref": "StarCraft: Brood War",
     "genre": "rts",
     "release": "2001-01-01",
-    "price_license": 700,
+    "price_license": 500,
     "price_pirate": 60,
     "req": {
       "cpu": 20,
@@ -92,7 +92,7 @@
     "ref": "Heroes of Might and Magic III",
     "genre": "tbs",
     "release": "2001-01-01",
-    "price_license": 600,
+    "price_license": 400,
     "price_pirate": 60,
     "req": {
       "cpu": 25,
@@ -120,7 +120,7 @@
     "ref": "Max Payne",
     "genre": "shooter_3p",
     "release": "2001-07-01",
-    "price_license": 1000,
+    "price_license": 700,
     "price_pirate": 70,
     "req": {
       "cpu": 55,
@@ -148,7 +148,7 @@
     "ref": "Quake III Arena",
     "genre": "shooter_arena",
     "release": "2001-01-01",
-    "price_license": 800,
+    "price_license": 550,
     "price_pirate": 60,
     "req": {
       "cpu": 45,
@@ -177,7 +177,7 @@
     "ref": "Ил-2 Штурмовик",
     "genre": "sim",
     "release": "2001-11-01",
-    "price_license": 900,
+    "price_license": 650,
     "price_pirate": 70,
     "req": {
       "cpu": 60,
@@ -205,7 +205,7 @@
     "ref": "Казаки",
     "genre": "rts",
     "release": "2001-01-01",
-    "price_license": 700,
+    "price_license": 500,
     "price_pirate": 60,
     "req": {
       "cpu": 30,
@@ -233,7 +233,7 @@
     "ref": "GTA: Vice City",
     "genre": "action",
     "release": "2003-05-01",
-    "price_license": 1200,
+    "price_license": 850,
     "price_pirate": 80,
     "req": {
       "cpu": 90,
@@ -261,7 +261,7 @@
     "ref": "Warcraft III",
     "genre": "rts",
     "release": "2002-07-01",
-    "price_license": 1100,
+    "price_license": 750,
     "price_pirate": 80,
     "req": {
       "cpu": 70,
@@ -290,7 +290,7 @@
     "ref": "Lineage II",
     "genre": "mmo",
     "release": "2004-04-01",
-    "price_license": 1500,
+    "price_license": 1050,
     "price_pirate": 90,
     "req": {
       "cpu": 110,
@@ -318,7 +318,7 @@
     "ref": "Asteroids",
     "genre": "minigame",
     "release": "2001-01-01",
-    "price_license": 150,
+    "price_license": 100,
     "price_pirate": 50,
     "req": {
       "cpu": 5,
@@ -346,7 +346,7 @@
     "ref": "Tetris",
     "genre": "minigame",
     "release": "2001-01-01",
-    "price_license": 150,
+    "price_license": 100,
     "price_pirate": 50,
     "req": {
       "cpu": 3,
@@ -375,7 +375,7 @@
     "ref": "Need for Speed",
     "genre": "race",
     "release": "2001-01-01",
-    "price_license": 800,
+    "price_license": 550,
     "price_pirate": 60,
     "req": {
       "cpu": 40,
@@ -403,7 +403,7 @@
     "ref": "FIFA Football 2002",
     "genre": "sport",
     "release": "2001-10-01",
-    "price_license": 800,
+    "price_license": 550,
     "price_pirate": 60,
     "req": {
       "cpu": 35,
