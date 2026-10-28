@@ -59,7 +59,10 @@ add_library(pcclub_game OBJECT
     src/game/player.cpp
     src/game/interact.cpp
     src/game/interact_draw.cpp
-    src/game/player_demo.cpp)
+    src/game/player_demo.cpp
+    src/game/club_scene.cpp
+    src/game/club_scene_layout.cpp
+    src/game/club_scene_rules.cpp)
 
 # --- ui: ОС администратора (T030, контракт — src/ui/ui_api.h).
 add_library(pcclub_ui OBJECT
@@ -107,9 +110,10 @@ image.putdata([(94, 65, 42, 255) if (x // 8 + y // 8) % 2 == 0
                else (122, 86, 56, 255) for y in range(16) for x in range(16)])
 image.save(sys.argv[1])
 ]=])
-# T010: заглушки T013 для демо управления.
+# T010/T014: заглушки T013 для зала.
 set(DEMO_MODELS)
-foreach(prop prop_desk_chipboard prop_crt17 prop_pc_case prop_chair_office)
+foreach(prop prop_desk_chipboard prop_crt17 prop_pc_case prop_chair_office prop_admin_counter
+        prop_shelf_discs)
     add_custom_command(
         OUTPUT ${DEMO_ASSETS}/${prop}.msh
         COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
@@ -145,6 +149,15 @@ add_custom_command(
     VERBATIM)
 add_custom_target(pcclub_data ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/data.pak)
 add_dependencies(pcclub pcclub_data)
+# T014: расстановка зала читается при загрузке рядом с приложением (схема — club_scene_layout.h).
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/scene_club.json
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/data/scene_club.json
+            ${CMAKE_CURRENT_BINARY_DIR}/scene_club.json
+    DEPENDS data/scene_club.json
+    VERBATIM)
+add_custom_target(pcclub_scene ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/scene_club.json)
+add_dependencies(pcclub pcclub_scene)
 
 # T041: исходники заглушки и бинарные ресурсы создаются только в build/.
 target_sources(pcclub_render PRIVATE src/render/anim.cpp src/render/anim_format.cpp)
@@ -340,8 +353,11 @@ else()
             tests/render/test_resources.cpp
             tests/game/test_player.cpp
             tests/game/test_interact.cpp
+            tests/game/test_club_scene.cpp
             src/game/player.cpp
             src/game/interact.cpp
+            src/game/club_scene_layout.cpp
+            src/game/club_scene_rules.cpp
             src/render/render_common.cpp
             src/render/mesh_format.cpp
             src/render/texture_format.cpp
@@ -372,7 +388,11 @@ else()
             src/ui/apps/shop.cpp src/ui/apps/mail.cpp
             src/ui/apps/ledger.cpp src/ui/apps/records.cpp)
         target_compile_definitions(pcclub_tests PRIVATE
-            PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
+            PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts"
+            PCCLUB_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+            PCCLUB_PLACEHOLDERS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/placeholders"
+            PCCLUB_DATA_PAK="${CMAKE_CURRENT_BINARY_DIR}/data.pak")
+        add_dependencies(pcclub_tests pcclub_data)
         # Поведение ОС: ui.cpp с заглушками render/platform/audio внутри теста.
         add_executable(pcclub_ui_tests tests/test_main.cpp tests/ui/test_ui_flow.cpp
             src/ui/ui.cpp src/ui/ui_common.cpp)

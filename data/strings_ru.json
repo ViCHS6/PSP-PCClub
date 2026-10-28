@@ -199,6 +199,14 @@
   "world.pc.power_off": "Выключить ПК",
   "world.pc.reboot": "Перезагрузить ПК",
   "world.pc.dust": "Сдуть пыль",
+  "world.pc.install": "Установить игру на ПК",
+  "world.pc.pirate": "пиратский диск",
+  "world.pc.repair": "Починить ПК",
+  "world.pc.busy": "За ПК сидит посетитель, место",
+  "world.pc.broken": "Сломан ПК",
+  "world.counter.sit": "Сесть за компьютер",
+  "world.toast.done": "Готово: ПК",
+  "world.toast.failed": "Не вышло: ПК",
 
   "ui.os.name": "Окна 2000 Клубная",
 
