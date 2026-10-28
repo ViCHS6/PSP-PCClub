@@ -6,6 +6,8 @@
 #include "render/render_api.h"
 #include "core/core_api.h"
 #include "core/data_api.h"
+#include "minigames/games_app.h"
+#include "minigames/sdk.h"
 #include "ui/demo_app.h"
 #include "ui/ui_api.h"
 
@@ -39,6 +41,25 @@ bool has_arg(int argc, char** argv, const char* arg) {
     return false;
 }
 
+const char* arg_value(int argc, char** argv, const char* arg) {
+    for (int i = 1; i + 1 < argc; ++i)
+        if (std::strcmp(argv[i], arg) == 0) return argv[i + 1];
+    return nullptr;
+}
+
+// --minigame <id>: сразу запустить мини-игру в хосте (T050); первый вид из Desc::kinds.
+bool start_cli_minigame(const char* id) {
+    const minigame::GameIndex index = minigame::find_game(id);
+    const minigame::Desc* desc = minigame::game(index);
+    if (!desc) {
+        std::fprintf(stderr, "--minigame %s: unknown\n", id);
+        return false;
+    }
+    minigame::StartParams params;
+    params.kind = (desc->kinds & minigame::kPlayable) ? minigame::kPlayable : minigame::kService;
+    return minigame::start(index, params);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -69,6 +90,9 @@ int main(int argc, char** argv) {
             ui::set_world(&g_world);
         }
         demo_app = ui::demo_register();
+        minigame::register_builtin();
+        if (have_data) minigame::validate(g_data);
+        minigame::games_app_register();
         if (has_arg(argc, argv, "--ui-demo")) {
             ui::set_active(true);
             ui::open_app(demo_app);
@@ -78,6 +102,9 @@ int main(int argc, char** argv) {
         }
     }
 
+    const char* cli_game = have_ui ? arg_value(argc, argv, "--minigame") : nullptr;
+    bool cli_running = cli_game && start_cli_minigame(cli_game);
+
     uint64_t prev = platform::time_us();
     while (platform::poll()) {
         const uint64_t now = platform::time_us();
@@ -86,18 +113,30 @@ int main(int argc, char** argv) {
         if (dt > 0.1f) dt = 0.1f;  // после паузы или сна консоли — без скачка
 
         const platform::InputState& input = platform::input();
-        if (have_ui && (input.pressed & platform::kButtonStart)) {
+        // Мини-игра забирает весь ввод, включая START (sdk.h); ОС и мир под ней — без ввода.
+        const bool in_minigame = minigame::running();
+        if (have_ui && !in_minigame && (input.pressed & platform::kButtonStart)) {
             ui::set_active(!ui::active());
             if (ui::active() && !ui::is_open(demo_app)) ui::open_app(demo_app);
         }
-        ui::update(dt, input);
-        scene.update(dt, ui::active() ? platform::InputState{} : input);
+        if (in_minigame) minigame::update(dt, input);
+        ui::update(dt, in_minigame ? platform::InputState{} : input);
+        scene.update(dt, ui::active() || in_minigame ? platform::InputState{} : input);
+        minigame::Result result;
+        if (cli_running && !minigame::running() && minigame::take_result(&result)) {
+            cli_running = false;
+            static const char* const kOutcome[] = {"completed", "failed", "aborted"};
+            std::printf("result game=%s outcome=%s score=%d quality=%.3f duration_ms=%u\n", cli_game,
+                        kOutcome[static_cast<int>(result.outcome)], static_cast<int>(result.score),
+                        static_cast<double>(result.quality), static_cast<unsigned>(result.duration_ms));
+        }
         audio::update();
         overlay.update(dt, input);
 
         render::begin_frame(render::rgba(40, 44, 52));
         scene.draw();
         ui::draw();
+        minigame::draw();
         overlay.draw();
         render::end_frame();
     }

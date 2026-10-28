@@ -67,13 +67,24 @@ add_library(pcclub_ui OBJECT
     src/ui/ui.cpp
     src/ui/demo_app.cpp)
 
-foreach(lib pcclub_platform pcclub_render pcclub_game pcclub_ui)
+# --- minigames: SDK мини-игр (T050, контракт — src/minigames/sdk.h). Новая игра — сюда
+# и в src/minigames/registry.cpp (docs/formats/minigame.md §8).
+set(PCCLUB_MINIGAME_SOURCES
+    src/minigames/example/example.cpp)
+add_library(pcclub_minigames OBJECT
+    src/minigames/host.cpp
+    src/minigames/registry.cpp
+    src/minigames/games_app.cpp
+    ${PCCLUB_MINIGAME_SOURCES})
+
+foreach(lib pcclub_platform pcclub_render pcclub_game pcclub_ui pcclub_minigames)
     target_link_libraries(${lib} PRIVATE pcclub_options pcclub_core)
 endforeach()
 
 add_executable(pcclub src/main.cpp)
 target_link_libraries(pcclub PRIVATE
-    pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game pcclub_ui)
+    pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game pcclub_ui
+    pcclub_minigames)
 
 # Демо-ресурсы лежат относительно приложения одинаково на PC и PSP.
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
@@ -357,6 +368,12 @@ else()
             PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
         target_link_libraries(pcclub_ui_tests PRIVATE pcclub_core doctest::doctest)
         add_test(NAME pcclub_ui_tests COMMAND pcclub_ui_tests)
+        # Хост и игры SDK (T050): заглушки render/ui внутри теста.
+        add_executable(pcclub_minigame_tests tests/test_main.cpp tests/minigames/test_host.cpp
+            src/minigames/host.cpp ${PCCLUB_MINIGAME_SOURCES})
+        target_compile_options(pcclub_minigame_tests PRIVATE -Wall -Wextra)
+        target_link_libraries(pcclub_minigame_tests PRIVATE pcclub_core doctest::doctest)
+        add_test(NAME pcclub_minigame_tests COMMAND pcclub_minigame_tests)
         set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
     endif()
 endif()
