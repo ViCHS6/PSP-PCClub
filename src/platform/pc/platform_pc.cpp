@@ -52,6 +52,8 @@ void parse_args(int argc, char** argv) {
         }
     }
     if (g_options.screenshot_path && g_options.max_frames <= 0) g_options.max_frames = 60;
+    g_options.use_save = g_options.max_frames <= 0;
+    for (int i = 1; i < argc; ++i) if (std::strcmp(argv[i], "--save") == 0) g_options.use_save = true;
 }
 
 bool build_path(const char* path, char* out, size_t capacity) {
@@ -119,6 +121,8 @@ void read_stick(float* x, float* y) {
 }  // namespace
 
 const PcOptions& pc_options() { return g_options; }
+
+bool pc_full_path(const char* path, char* out, size_t capacity) { return build_path(path, out, capacity); }
 
 bool init(const InitParams& params) {
     parse_args(params.argc, params.argv);

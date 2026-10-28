@@ -37,6 +37,7 @@ add_library(pcclub_core STATIC
     src/core/commands.cpp
     src/core/conditions.cpp
     src/core/events.cpp
+    src/core/save.cpp
     src/core/hooks_stub.cpp)
 target_include_directories(pcclub_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pcclub_core PRIVATE pcclub_options)
@@ -45,7 +46,8 @@ target_link_libraries(pcclub_core PRIVATE pcclub_options)
 # файл целиком (PSP_MODULE_INFO не вызывается из кода, статическая библиотека его бы выкинула).
 add_library(pcclub_platform OBJECT src/platform/${PCCLUB_TARGET}/platform_${PCCLUB_TARGET}.cpp)
 target_sources(pcclub_platform PRIVATE src/platform/audio_mixer.cpp
-    src/platform/${PCCLUB_TARGET}/audio_${PCCLUB_TARGET}.cpp)
+    src/platform/${PCCLUB_TARGET}/audio_${PCCLUB_TARGET}.cpp
+    src/platform/${PCCLUB_TARGET}/save_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_render OBJECT
     src/render/render_common.cpp
     src/render/mesh_format.cpp
@@ -54,6 +56,7 @@ add_library(pcclub_render OBJECT
     src/render/texture_resources.cpp
     src/render/render_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_game OBJECT
+    src/game/autosave.cpp
     src/game/debug_overlay.cpp
     src/game/demo_scene.cpp
     src/game/player.cpp
@@ -322,7 +325,7 @@ add_dependencies(pcclub pcclub_ui_assets)
 
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspaudio)
-    target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
+    target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower psputility)
     create_pbp_file(
         TARGET pcclub
         TITLE "Компьютерный клуб"
@@ -355,6 +358,7 @@ else()
             tests/core/test_contract.cpp
             tests/core/test_sim_run.cpp
             tests/core/test_events.cpp
+            tests/core/test_save.cpp
             tests/render/test_formats.cpp
             tests/render/test_resources.cpp
             tests/game/test_player.cpp
@@ -386,6 +390,7 @@ else()
         add_test(NAME convert_anim_tests COMMAND ${Python3_EXECUTABLE} -B -m unittest
             discover -s ${CMAKE_CURRENT_SOURCE_DIR}/tools/tests -p test_convert_anim.py)
         add_executable(pcclub_audio_tests tests/test_main.cpp tests/platform/test_audio_mixer.cpp
+            tests/platform/test_save_pc.cpp src/platform/pc/save_pc.cpp
             src/platform/audio_mixer.cpp src/platform/pc/platform_pc.cpp src/platform/pc/audio_pc.cpp)
         target_compile_options(pcclub_audio_tests PRIVATE -Wall -Wextra)
         target_link_libraries(pcclub_audio_tests PRIVATE pcclub_core doctest::doctest SDL2::SDL2)

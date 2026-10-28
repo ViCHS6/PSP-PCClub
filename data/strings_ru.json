@@ -210,6 +210,9 @@
 
   "ui.os.name": "Окна 2000 Клубная",
 
+  "save.title": "Компьютерный клуб",
+  "save.detail": "День %d, %02d.%02d.%04d. В кассе %d руб.",
+
   "ui.demo.title": "Виджеты",
   "ui.demo.icon": "Вд",
   "ui.demo.buttons": "Кнопки",
