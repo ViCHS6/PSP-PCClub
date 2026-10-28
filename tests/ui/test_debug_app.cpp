@@ -54,6 +54,7 @@ bool fake_load(core::World& w) {
     return g_host.ok;
 }
 bool fake_erase() { ++g_host.erases; return g_host.ok; }
+int fake_code() { return g_host.ok ? 0 : static_cast<int>(0x80110385u); }
 
 std::vector<uint8_t> read_pak() {
     std::vector<uint8_t> bytes;
@@ -85,6 +86,7 @@ struct Fixture {
             host.save = fake_save;
             host.load = fake_load;
             host.erase = fake_erase;
+            host.last_code = fake_code;
         }
         REQUIRE(ui::debug_register(host) != ui::kNoApp);
         REQUIRE(g_apps.size() == 1);
@@ -287,6 +289,7 @@ TEST_CASE("DBG: сохранение — только между кадрами,
     ui::debug_after_frame(&w);
     f.frame();
     CHECK(has_text(ui::str("app.debug.status.not_saved")));
+    CHECK(has_text("0x80110385"));
 }
 
 TEST_CASE("DBG: без носителя кнопки сохранения серые") {

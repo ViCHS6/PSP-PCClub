@@ -2,6 +2,7 @@
 #include "core/data_api.h"
 #include "game/autosave.h"
 #include "platform/save_api.h"
+#include "platform/save_debug.h"
 #include "ui/apps/debug.h"
 
 namespace ui {
@@ -28,6 +29,7 @@ DebugHost debug_game_host() {
     h.save = save;
     h.load = load;
     h.erase = erase;
+    h.last_code = platform::save_last_code;
     return h;
 }
 

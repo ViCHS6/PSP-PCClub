@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "platform/save_api.h"
+#include "platform/save_debug.h"
 
 namespace platform {
 
@@ -26,6 +27,7 @@ constexpr int kResultCancelled = 1;
 constexpr unsigned kBackground = 0xFF201C18u;  // тёмный фон под диалогом, ABGR
 
 alignas(16) uint32_t g_list[64];
+int g_last_code = 0;  // save_debug.h
 SceUtilitySavedataParam g_param;
 
 void copy(char* dst, size_t cap, const char* src) { std::snprintf(dst, cap, "%s", src ? src : ""); }
@@ -54,7 +56,8 @@ void prepare(PspUtilitySavedataMode mode, void* buf, size_t buf_size, size_t dat
 // Крутит кадры, пока утилита не закончит. dialog — утилита рисует окно поверх нашего фона;
 // иначе (AUTO-режимы, окна нет) экран не трогаем — остаётся последний кадр игры.
 int run(bool dialog) {
-    if (sceUtilitySavedataInitStart(&g_param) < 0) return -1;
+    const int init = sceUtilitySavedataInitStart(&g_param);
+    if (init < 0) return g_last_code = init;
     for (;;) {
         if (dialog) {
             sceGuStart(GU_DIRECT, g_list);
@@ -74,7 +77,7 @@ int run(bool dialog) {
         sceDisplayWaitVblankStart();
         if (dialog) sceGuSwapBuffers();
     }
-    return g_param.base.result;
+    return g_last_code = g_param.base.result;
 }
 
 SaveResult to_result(int code) {
@@ -87,6 +90,8 @@ SaveResult to_result(int code) {
 }
 
 }  // namespace
+
+int save_last_code() { return g_last_code; }
 
 SaveResult save_write(const void* data, size_t size, const SaveMeta& meta, SaveUi ui) {
     if (size > kSaveCapacity) return SaveResult::kTooBig;

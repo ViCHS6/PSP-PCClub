@@ -82,6 +82,7 @@ struct State {
     const char* working = "";
     const char* saved = "";
     const char* not_saved = "";
+    const char* failed_code = "";
     const char* cant_save = "";
     const char* loaded_fmt = "";
     const char* not_loaded = "";
@@ -106,6 +107,17 @@ void set_result(State& s, core::CmdResult r) { s.status = s.result[static_cast<i
 
 void set_status(State& s, const char* fmt, int value) {
     std::snprintf(s.status_buf, sizeof(s.status_buf), fmt, value);
+    s.status = s.status_buf;
+}
+
+// Неудача записи/чтения/стирания: с сырым кодом носителя, если он есть.
+void set_failed(State& s, const char* text) {
+    const int code = s.host.last_code ? s.host.last_code() : 0;
+    if (code == 0) {
+        s.status = text;
+        return;
+    }
+    std::snprintf(s.status_buf, sizeof(s.status_buf), s.failed_code, text, static_cast<unsigned>(code));
     s.status = s.status_buf;
 }
 
@@ -171,6 +183,7 @@ void on_open(Context&, void* user) {
     s.working = str("app.debug.status.working");
     s.saved = str("app.debug.status.saved");
     s.not_saved = str("app.debug.status.not_saved");
+    s.failed_code = str("app.debug.status.failed_code");
     s.cant_save = str("app.debug.status.cant_save");
     s.loaded_fmt = str("app.debug.status.loaded");
     s.not_loaded = str("app.debug.status.not_loaded");
@@ -297,12 +310,18 @@ void debug_after_frame(core::World* world) {
     s.pending = Op::kNone;
     if (!world || !world->data) return;
     switch (op) {
-    case Op::kSave: s.status = s.host.save && s.host.save(*world) ? s.saved : s.not_saved; break;
+    case Op::kSave:
+        if (s.host.save && s.host.save(*world)) s.status = s.saved;
+        else set_failed(s, s.not_saved);
+        break;
     case Op::kLoad:
         if (s.host.load && s.host.load(*world)) set_status(s, s.loaded_fmt, static_cast<int>(world->clock.day_index));
-        else s.status = s.not_loaded;
+        else set_failed(s, s.not_loaded);
         break;
-    case Op::kErase: s.status = s.host.erase && s.host.erase() ? s.erased : s.not_erased; break;
+    case Op::kErase:
+        if (s.host.erase && s.host.erase()) s.status = s.erased;
+        else set_failed(s, s.not_erased);
+        break;
     case Op::kNone: break;
     }
 }

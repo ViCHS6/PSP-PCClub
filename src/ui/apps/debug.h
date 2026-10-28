@@ -14,6 +14,7 @@ struct DebugHost {
     bool (*save)(const core::World& world) = nullptr;  // сохранить сейчас, с системным диалогом
     bool (*load)(core::World& world) = nullptr;        // прочитать слот в мир (мир тот же объект)
     bool (*erase)() = nullptr;                         // затереть слот: следующий запуск — новая игра
+    int (*last_code)() = nullptr;                      // сырой код носителя после неудачи (0 — нет)
 };
 
 // os_apps регистрирует без хоста; игра подключает его после (debug_set_host) — так pcclub_ui

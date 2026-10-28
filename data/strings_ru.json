@@ -516,6 +516,7 @@
   "app.debug.status.working": "Выполняется…",
   "app.debug.status.saved": "Сохранено.",
   "app.debug.status.not_saved": "Не сохранено.",
+  "app.debug.status.failed_code": "%s Код носителя: 0x%08X.",
   "app.debug.status.cant_save": "Сохранять можно утром (8:00–9:00).",
   "app.debug.status.loaded": "Загружено: день %d.",
   "app.debug.status.not_loaded": "Сохранения нет или оно не читается.",
