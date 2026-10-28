@@ -65,7 +65,11 @@ add_library(pcclub_game OBJECT
 add_library(pcclub_ui OBJECT
     src/ui/ui_common.cpp
     src/ui/ui.cpp
-    src/ui/demo_app.cpp)
+    src/ui/demo_app.cpp
+    src/ui/apps/shop.cpp
+    src/ui/apps/mail.cpp
+    src/ui/apps/ledger.cpp
+    src/ui/apps/records.cpp)
 
 # --- minigames: SDK мини-игр (T050, контракт — src/minigames/sdk.h). Новая игра — сюда
 # и в src/minigames/registry.cpp (docs/formats/minigame.md §8).
@@ -357,7 +361,10 @@ else()
         target_link_libraries(pcclub_audio_tests PRIVATE pcclub_core doctest::doctest SDL2::SDL2)
         add_dependencies(pcclub_audio_tests pcclub_demo_audio)
         add_test(NAME pcclub_audio_tests COMMAND pcclub_audio_tests)
-        target_sources(pcclub_tests PRIVATE tests/ui/test_ui_common.cpp src/ui/ui_common.cpp)
+        target_sources(pcclub_tests PRIVATE tests/ui/test_ui_common.cpp src/ui/ui_common.cpp
+            tests/ui/test_os_apps.cpp
+            src/ui/apps/shop.cpp src/ui/apps/mail.cpp
+            src/ui/apps/ledger.cpp src/ui/apps/records.cpp)
         target_compile_definitions(pcclub_tests PRIVATE
             PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
         # Поведение ОС: ui.cpp с заглушками render/platform/audio внутри теста.
