@@ -137,6 +137,14 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse((self.root / "assets" / "previews").exists())
 
+    def test_underscore_blend_is_skipped(self):
+        source = self.root / "assets" / "src" / "_template.blend"
+        source.parent.mkdir(parents=True)
+        source.write_text("not a blend", encoding="utf-8")
+        result = run_script("assets.py", "build", "--root", self.root, "--blender", "missing-blender")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("нет .blend", result.stdout)
+
     def test_missing_blender_explains_configuration(self):
         source = self.root / "assets" / "src" / "props" / "prop_test.blend"
         source.parent.mkdir(parents=True)

@@ -58,7 +58,9 @@ def build(args):
     output = rooted(root, args.output, "build/assets")
     previews = rooted(root, args.previews, "assets/previews")
     textures = root / "assets" / "textures"
-    sources = sorted((root / "assets" / "src").rglob("*.blend"))
+    # Файлы с «_» в начале — служебные (шаблон A004 и т. п.), это не ассеты.
+    sources = sorted(p for p in (root / "assets" / "src").rglob("*.blend")
+                     if not p.name.startswith("_"))
     categories = category_arguments(args.category)
     if args.only:
         sources = [source for source in sources if source.stem == args.only]
