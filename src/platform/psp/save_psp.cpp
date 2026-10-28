@@ -27,6 +27,10 @@ constexpr int kResultCancelled = 1;
 constexpr unsigned kBackground = 0xFF201C18u;  // тёмный фон под диалогом, ABGR
 
 alignas(16) uint32_t g_list[64];
+// Копия данных для записи. При размере структуры 0x600 (прошивка ≥ 2.00) утилита шифрует данные
+// и дополняет их до 16 байт — буфер ровно по размеру данных настоящая прошивка отвергает
+// (0x80110388, PPSSPP — нет). Поэтому dataBufSize — вся ёмкость слота.
+alignas(64) uint8_t g_write_buf[kSaveCapacity + 64];
 int g_last_code = 0;  // save_debug.h
 SceUtilitySavedataParam g_param;
 
@@ -97,9 +101,10 @@ SaveResult save_write(const void* data, size_t size, const SaveMeta& meta, SaveU
     if (size > kSaveCapacity) return SaveResult::kTooBig;
     if (!data) return SaveResult::kError;
     const bool dialog = ui == SaveUi::kDialog;
-    // Утилита буфер только читает; const снимаем ради её структуры.
-    prepare(dialog ? PSP_UTILITY_SAVEDATA_SAVE : PSP_UTILITY_SAVEDATA_AUTOSAVE, const_cast<void*>(data),
-            size, size);
+    std::memcpy(g_write_buf, data, size);
+    std::memset(g_write_buf + size, 0, sizeof(g_write_buf) - size);
+    prepare(dialog ? PSP_UTILITY_SAVEDATA_SAVE : PSP_UTILITY_SAVEDATA_AUTOSAVE, g_write_buf, sizeof(g_write_buf),
+            size);
     copy(g_param.sfoParam.title, sizeof(g_param.sfoParam.title), meta.title);
     copy(g_param.sfoParam.savedataTitle, sizeof(g_param.sfoParam.savedataTitle), meta.title);
     copy(g_param.sfoParam.detail, sizeof(g_param.sfoParam.detail), meta.detail);
