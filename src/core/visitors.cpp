@@ -361,7 +361,7 @@ void start_leave(World& w, uint8_t i, LeaveReason reason) {
     queue_remove(w, i);
     if (served && w.pcs[v.pc].visitor == i) free_pc(w, v.pc);
 
-    // Репутация (§7.3, §7.5). Необслуженный ушедший по терпению репутацию только теряет;
+    // Репутация (§7.3, §7.5). Необслуженный ушедший по терпению или по отказу — только теряет;
     // отказ по цене и закрытие очереди её не меняют.
     float rep = 0.0f;
     if (served) {
@@ -369,7 +369,7 @@ void start_leave(World& w, uint8_t i, LeaveReason reason) {
         w.stats.today.sat_sum += v.sat;
     } else if (reason == LeaveReason::kNoGame) {
         rep = formula::no_game_rep_penalty();
-    } else if (reason == LeaveReason::kPatience) {
+    } else if (reason == LeaveReason::kPatience || reason == LeaveReason::kRefused) {
         const float d = formula::leave_rep_delta(a.rep_weight, v.sat);
         rep = d < 0.0f ? d : 0.0f;
     }
@@ -382,7 +382,7 @@ void start_leave(World& w, uint8_t i, LeaveReason reason) {
             add_relation(s, d);
             if (s.visits < 0xFFFF) ++s.visits;
             s.sat_sum += v.sat;
-        } else if (reason == LeaveReason::kPatience && d < 0.0f) {
+        } else if ((reason == LeaveReason::kPatience || reason == LeaveReason::kRefused) && d < 0.0f) {
             add_relation(s, d);
         }
     } else if (served) {
@@ -391,7 +391,7 @@ void start_leave(World& w, uint8_t i, LeaveReason reason) {
 
     ++w.stats.today.left[static_cast<int>(reason)];
     if (reason == LeaveReason::kPatience || reason == LeaveReason::kUnhappy ||
-        reason == LeaveReason::kNoGame) {
+        reason == LeaveReason::kNoGame || reason == LeaveReason::kRefused) {
         events_on_action(w, kActVisitorLeftAngry, v.archetype);
     }
     v.leave_reason = reason;
@@ -557,6 +557,13 @@ ServeResult cmd_serve(World& w, uint8_t vi, uint8_t pc, Tariff tariff) {
     ++w.stats.today.served;
     if (alt && v.want_game != kNone) detail::set_request(w, vi, Request::kGame, v.want_game);
     return alt ? ServeResult::kSeatedAlt : ServeResult::kSeated;
+}
+
+CmdResult cmd_refuse(World& w, uint8_t vi) {
+    if (w.clock.phase == Phase::kGameOver) return CmdResult::kWrongPhase;
+    if (vi >= kMaxVisitors || w.visitors[vi].state != VisitorState::kWaiting) return CmdResult::kInvalid;
+    detail::start_leave(w, vi, LeaveReason::kRefused);  // GDD §7.3: как уход по терпению
+    return CmdResult::kOk;
 }
 
 CmdResult cmd_resolve_request(World& w, uint8_t vi) {
