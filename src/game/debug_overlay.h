@@ -5,10 +5,14 @@
 
 namespace game {
 
+class ServiceTimer;
+
 class DebugOverlay {
 public:
     void update(float dt, const platform::InputState& input);
     void draw() const;
+    // Замер обслуживания у стойки (T033); nullptr — строки нет. Должен жить дольше оверлея.
+    void set_service(const ServiceTimer* timer) { service_ = timer; }
 
 private:
     bool visible_ = true;
@@ -17,6 +21,7 @@ private:
     float fps_ = 0.0f;
     float frame_ms_ = 0.0f;
     platform::InputState input_;
+    const ServiceTimer* service_ = nullptr;
 };
 
 }  // namespace game

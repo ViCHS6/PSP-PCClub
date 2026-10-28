@@ -214,7 +214,7 @@ bool ClubScene::place_admin() {
         admin_screen_.screen = admin_screen_.target = render::ScreenId::kDesktop;
     }
 
-    // T033 заменит открытие ОС переходом камеры в монитор.
+    // × у стойки — въезд камеры в монитор (T033, game/admin_desk.h).
     InteractDesc d;
     const Aabb mb = model_box(monitor_model_, monitor_pos, a.yaw + a.monitor_yaw);
     d.bounds_min = {box.min.x < mb.min.x ? box.min.x : mb.min.x, box.min.y, box.min.z < mb.min.z ? box.min.z : mb.min.z};
@@ -322,8 +322,8 @@ void ClubScene::update(float dt, const platform::InputState& input) {
     if (toast_left_ > 0.0f) toast_left_ -= dt;
 }
 
-void ClubScene::draw(bool hud) const {
-    const core::Mat4 view = player_.view();
+void ClubScene::draw(bool hud, const core::Mat4* camera) const {
+    const core::Mat4 view = camera ? *camera : player_.view();
     render::set_camera(view, projection_);
     render::draw_mesh(room_, core::mat4_identity());
     for (int i = 0; i < seat_count_; ++i) {

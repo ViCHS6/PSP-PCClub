@@ -62,7 +62,9 @@ add_library(pcclub_game OBJECT
     src/game/player_demo.cpp
     src/game/club_scene.cpp
     src/game/club_scene_layout.cpp
-    src/game/club_scene_rules.cpp)
+    src/game/club_scene_rules.cpp
+    src/game/admin_desk.cpp
+    src/game/admin_desk_core.cpp)
 
 # --- ui: ОС администратора (T030, контракт — src/ui/ui_api.h).
 add_library(pcclub_ui OBJECT
@@ -358,6 +360,8 @@ else()
             tests/game/test_player.cpp
             tests/game/test_interact.cpp
             tests/game/test_club_scene.cpp
+            tests/game/test_admin_desk.cpp
+            src/game/admin_desk_core.cpp
             src/game/player.cpp
             src/game/interact.cpp
             src/game/club_scene_layout.cpp

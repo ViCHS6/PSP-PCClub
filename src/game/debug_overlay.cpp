@@ -2,6 +2,7 @@
 
 #include <cstdio>
 
+#include "game/admin_desk.h"
 #include "render/render_api.h"
 #include "platform/audio_api.h"
 
@@ -40,7 +41,7 @@ void DebugOverlay::draw() const {
     char line[128];
     int y = 4;
 
-    render::draw_rect(2, 2, 468, kLine * 6 + 6, rgba(0, 0, 0, 160));
+    render::draw_rect(2, 2, 468, kLine * (service_ ? 7 : 6) + 6, rgba(0, 0, 0, 160));
 
     // До первого полного окна усреднения — оценка по накопленному.
     float fps = fps_, frame_ms = frame_ms_;
@@ -101,8 +102,28 @@ void DebugOverlay::draw() const {
                   unsigned(as.mix_us_last), unsigned(as.mix_us_peak));
     render::debug_text(6, y, line, kText);
 
+    // Стойка: последний замер зелёный, если уложился в цель GDD §9.2, иначе красный.
+    if (service_) {
+        y += kLine;
+        const ServiceTimer& t = *service_;
+        int len = std::snprintf(line, sizeof(line), "Стойка: ");
+        if (t.timing())
+            len += std::snprintf(line + len, sizeof(line) - len, "идёт %.1f с  ", static_cast<double>(t.current()));
+        else if (t.armed())
+            len += std::snprintf(line + len, sizeof(line) - len, "ждём посетителя  ");
+        if (t.count() > 0)
+            std::snprintf(line + len, sizeof(line) - len, "посл. %.1f  ср. %.1f  мин %.1f  макс %.1f с  (%d)",
+                          static_cast<double>(t.last()), static_cast<double>(t.average()),
+                          static_cast<double>(t.best()), static_cast<double>(t.worst()), t.count());
+        else if (!t.armed())
+            std::snprintf(line + len, sizeof(line) - len, "замеров нет (× у стойки)");
+        const render::Color good = rgba(48, 192, 80), bad = rgba(224, 64, 48);
+        const render::Color c = t.count() == 0 ? kText : (t.last() <= desk::kServiceTarget ? good : bad);
+        render::debug_text(6, y, line, c);
+    }
+
     render::debug_text(6, render::kScreenHeight - kLine - 4,
-                       "Компьютерный клуб · T001 · ×: вращение · SELECT: оверлей", kAccent);
+                       "Крестовина: ходьба · стик: обзор · ×: действие · START: ОС · SELECT: оверлей", kAccent);
 }
 
 }  // namespace game
