@@ -96,6 +96,76 @@ add_custom_target(pcclub_demo_assets ALL DEPENDS
     ${DEMO_ASSETS}/prop_desk_chipboard.msh ${DEMO_ASSETS}/demo_checker.tex)
 add_dependencies(pcclub pcclub_demo_assets)
 
+# T042: общий модуль экранов и временные ленты до слияния A011.
+target_sources(pcclub_render PRIVATE src/render/screen_tex.cpp)
+if(NOT PSP)
+    target_compile_definitions(pcclub_game PRIVATE PCCLUB_SCREEN_BENCH)
+endif()
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/screen_texture.py CONTENT [=[
+import subprocess
+import sys
+from pathlib import Path
+from PIL import Image, ImageDraw
+
+source, output, converter, screen_id = sys.argv[1:]
+source, output = Path(source), Path(output)
+static = screen_id in ("desktop", "bsod", "off")
+if source.is_file():
+    with Image.open(source) as image:
+        width, height = image.size
+    frames = height // 64
+    if width != 64 or height % 64 or (frames != 1 if static else not 4 <= frames <= 8):
+        raise SystemExit(f"{source}: expected 64x64" if static else
+                         f"{source}: expected 64x(64*N), N=4..8")
+else:
+    frames = 1 if static else 4
+    colors = {
+        "shooter": "#E04030", "rts": "#5E7A5A", "tbs": "#F0C020",
+        "rpg": "#30C050", "sim": "#2F3A55", "race": "#7A5638",
+        "action": "#6B4C30", "casual": "#D8D0B8", "desktop": "#4B6449",
+        "loading": "#222222", "bsod": "#2050C0", "off": "#080808"
+    }
+    image = Image.new("RGB", (64, 64 * frames), colors[screen_id])
+    draw = ImageDraw.Draw(image)
+    for frame in range(frames):
+        y = frame * 64
+        if frames > 1:
+            x = 4 + frame * 13
+            draw.rectangle((4, y + 48, 59, y + 55), fill="#222222")
+            draw.rectangle((x, y + 48, x + 12, y + 55), fill="#E8F0F0")
+        elif screen_id != "off":
+            for row in range(5):
+                draw.rectangle((5, y + 6 + row * 7, 25 + row * 5, y + 8 + row * 7), fill="#E8F0F0")
+    source = output.with_suffix(".png")
+    image.save(source)
+subprocess.run([sys.executable, converter, str(source), "-o", str(output),
+                "--format", "t4", "--frames", str(frames)], check=True)
+]=])
+# CONFIGURE_DEPENDS замечает появление PNG после слияния A011 без ручной настройки.
+file(GLOB SCREEN_SOURCE_PNGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/assets/textures/scr_*.png")
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/screen_sources.txt" CONTENT "${SCREEN_SOURCE_PNGS}\n")
+set(SCREEN_TEXTURE_OUTPUTS)
+foreach(screen_id shooter rts tbs rpg sim race action casual desktop loading bsod off)
+    set(screen_png "${CMAKE_CURRENT_SOURCE_DIR}/assets/textures/scr_${screen_id}.png")
+    set(screen_dependencies)
+    if(EXISTS "${screen_png}")
+        list(APPEND screen_dependencies "${screen_png}")
+    endif()
+    set(screen_tex "${DEMO_ASSETS}/scr_${screen_id}.tex")
+    add_custom_command(
+        OUTPUT "${screen_tex}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEMO_ASSETS}"
+        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/screen_texture.py"
+                "${screen_png}" "${screen_tex}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_texture.py" "${screen_id}"
+        DEPENDS tools/convert_texture.py "${CMAKE_CURRENT_BINARY_DIR}/screen_texture.py"
+                "${CMAKE_CURRENT_BINARY_DIR}/screen_sources.txt" ${screen_dependencies}
+        VERBATIM)
+    list(APPEND SCREEN_TEXTURE_OUTPUTS "${screen_tex}")
+endforeach()
+add_custom_target(pcclub_screen_assets ALL DEPENDS ${SCREEN_TEXTURE_OUTPUTS})
+add_dependencies(pcclub pcclub_screen_assets)
+
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
     create_pbp_file(
@@ -147,4 +217,12 @@ else()
         endif()
         add_test(NAME pcclub_tests COMMAND pcclub_tests)
     endif()
+endif()
+
+if(NOT PSP AND PCCLUB_TESTS)
+    add_executable(pcclub_screen_tests tests/test_main.cpp
+        tests/render/test_screen_tex.cpp src/render/screen_tex.cpp)
+    target_compile_options(pcclub_screen_tests PRIVATE -Wall -Wextra)
+    target_link_libraries(pcclub_screen_tests PRIVATE pcclub_core doctest::doctest)
+    add_test(NAME pcclub_screen_tests COMMAND pcclub_screen_tests)
 endif()
