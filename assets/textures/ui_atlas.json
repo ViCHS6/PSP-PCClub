@@ -1,0 +1,571 @@
+{
+  "button.focus": {
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "tex": "ui_frame",
+    "tile_edges": true,
+    "w": 12,
+    "x": 96,
+    "y": 0
+  },
+  "button.normal": {
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 72,
+    "y": 0
+  },
+  "button.pressed": {
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 84,
+    "y": 0
+  },
+  "caption.close_normal": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 60,
+    "y": 12
+  },
+  "caption.close_pressed": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 72,
+    "y": 12
+  },
+  "caption.minimize_normal": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 116,
+    "y": 0
+  },
+  "caption.minimize_pressed": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 48,
+    "y": 12
+  },
+  "checkbox.off": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 84,
+    "y": 12
+  },
+  "checkbox.on": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 96,
+    "y": 12
+  },
+  "cursor.arrow": {
+    "h": 16,
+    "hot": [
+      1,
+      0
+    ],
+    "tex": "ui_cursor",
+    "w": 16,
+    "x": 0,
+    "y": 0
+  },
+  "cursor.hand": {
+    "h": 16,
+    "hot": [
+      5,
+      0
+    ],
+    "tex": "ui_cursor",
+    "w": 16,
+    "x": 16,
+    "y": 0
+  },
+  "cursor.ibeam": {
+    "h": 16,
+    "hot": [
+      7,
+      7
+    ],
+    "tex": "ui_cursor",
+    "w": 16,
+    "x": 0,
+    "y": 16
+  },
+  "cursor.wait": {
+    "frame_ms": 350,
+    "frames": [
+      "cursor.wait",
+      "cursor.wait_1"
+    ],
+    "h": 16,
+    "hot": [
+      7,
+      7
+    ],
+    "tex": "ui_cursor",
+    "w": 16,
+    "x": 32,
+    "y": 0
+  },
+  "cursor.wait_1": {
+    "h": 16,
+    "hot": [
+      7,
+      7
+    ],
+    "tex": "ui_cursor",
+    "w": 16,
+    "x": 48,
+    "y": 0
+  },
+  "frame.field": {
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 60,
+    "y": 0
+  },
+  "frame.window": {
+    "h": 12,
+    "slice": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 48,
+    "y": 0
+  },
+  "icon16.cashier": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 0,
+    "y": 0
+  },
+  "icon16.computer": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 0,
+    "y": 32
+  },
+  "icon16.document": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 48,
+    "y": 32
+  },
+  "icon16.error": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 32,
+    "y": 48
+  },
+  "icon16.folder": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 32,
+    "y": 32
+  },
+  "icon16.games": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 32,
+    "y": 16
+  },
+  "icon16.info": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 0,
+    "y": 48
+  },
+  "icon16.ledger": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 0,
+    "y": 16
+  },
+  "icon16.mail": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 48,
+    "y": 0
+  },
+  "icon16.network": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 16,
+    "y": 0
+  },
+  "icon16.question": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 48,
+    "y": 48
+  },
+  "icon16.records": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 16,
+    "y": 16
+  },
+  "icon16.settings": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 48,
+    "y": 16
+  },
+  "icon16.shop": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 32,
+    "y": 0
+  },
+  "icon16.start": {
+    "h": 16,
+    "tex": "ui_frame",
+    "w": 16,
+    "x": 32,
+    "y": 0
+  },
+  "icon16.trash": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 16,
+    "y": 32
+  },
+  "icon16.warning": {
+    "h": 16,
+    "tex": "ui_icons16",
+    "w": 16,
+    "x": 16,
+    "y": 48
+  },
+  "icon32.cashier": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 0,
+    "y": 0
+  },
+  "icon32.computer": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 0,
+    "y": 64
+  },
+  "icon32.document": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 96,
+    "y": 64
+  },
+  "icon32.error": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 64,
+    "y": 96
+  },
+  "icon32.folder": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 64,
+    "y": 64
+  },
+  "icon32.games": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 64,
+    "y": 32
+  },
+  "icon32.info": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 0,
+    "y": 96
+  },
+  "icon32.ledger": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 0,
+    "y": 32
+  },
+  "icon32.mail": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 96,
+    "y": 0
+  },
+  "icon32.network": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 32,
+    "y": 0
+  },
+  "icon32.question": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 96,
+    "y": 96
+  },
+  "icon32.records": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 32,
+    "y": 32
+  },
+  "icon32.settings": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 96,
+    "y": 32
+  },
+  "icon32.shop": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 64,
+    "y": 0
+  },
+  "icon32.start": {
+    "h": 32,
+    "tex": "ui_frame",
+    "w": 32,
+    "x": 0,
+    "y": 0
+  },
+  "icon32.trash": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 32,
+    "y": 64
+  },
+  "icon32.warning": {
+    "h": 32,
+    "tex": "ui_icons32",
+    "w": 32,
+    "x": 32,
+    "y": 96
+  },
+  "menu.separator": {
+    "h": 2,
+    "repeat": "x",
+    "tex": "ui_frame",
+    "w": 4,
+    "x": 44,
+    "y": 16
+  },
+  "progress.segment": {
+    "h": 8,
+    "tex": "ui_frame",
+    "w": 6,
+    "x": 110,
+    "y": 14
+  },
+  "radio.off": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 116,
+    "y": 12
+  },
+  "radio.on": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 32,
+    "y": 16
+  },
+  "scroll.down_normal": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 68,
+    "y": 24
+  },
+  "scroll.down_pressed": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 80,
+    "y": 24
+  },
+  "scroll.left_normal": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 92,
+    "y": 24
+  },
+  "scroll.left_pressed": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 104,
+    "y": 24
+  },
+  "scroll.right_normal": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 116,
+    "y": 24
+  },
+  "scroll.right_pressed": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 32,
+    "y": 28
+  },
+  "scroll.thumb": {
+    "h": 12,
+    "slice": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 0,
+    "y": 32
+  },
+  "scroll.track": {
+    "h": 2,
+    "repeat": "xy",
+    "tex": "ui_frame",
+    "w": 2,
+    "x": 108,
+    "y": 14
+  },
+  "scroll.up_normal": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 44,
+    "y": 24
+  },
+  "scroll.up_pressed": {
+    "h": 12,
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 56,
+    "y": 24
+  },
+  "taskbar.start_normal": {
+    "h": 14,
+    "slice": [
+      3,
+      3,
+      3,
+      3
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 16,
+    "y": 32
+  },
+  "taskbar.start_pressed": {
+    "h": 14,
+    "slice": [
+      3,
+      3,
+      3,
+      3
+    ],
+    "tex": "ui_frame",
+    "w": 12,
+    "x": 44,
+    "y": 36
+  },
+  "taskbar.tile": {
+    "h": 16,
+    "repeat": "x",
+    "tex": "ui_frame",
+    "w": 4,
+    "x": 12,
+    "y": 32
+  },
+  "title.active": {
+    "h": 14,
+    "repeat": "x",
+    "tex": "ui_frame",
+    "w": 4,
+    "x": 108,
+    "y": 0
+  },
+  "title.inactive": {
+    "h": 14,
+    "repeat": "x",
+    "tex": "ui_frame",
+    "w": 4,
+    "x": 112,
+    "y": 0
+  },
+  "wallpaper.desktop": {
+    "h": 128,
+    "tex": "ui_wallpaper",
+    "w": 256,
+    "x": 0,
+    "y": 0
+  }
+}
