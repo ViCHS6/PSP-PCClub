@@ -51,6 +51,8 @@ void resolve_request(World& w, uint8_t v);  // просьба решена: +5 �
 void pcs_tick(World& w);
 // Поломка компонента comp: kBroken, просьба посетителю, on_action pc_broken (§7.7, damage_pc).
 void break_pc(World& w, uint8_t pc, int comp);
+// Зависание (§7.7): kHung, просьба посетителю, on_action pc_hung.
+void set_pc_hung(World& w, uint8_t pc);
 // ПК после ремонта/замены/перезагрузки: kBusy с посетителем, иначе kIdle.
 void pc_restore(World& w, uint8_t pc);
 
@@ -62,6 +64,8 @@ bool conds_hold(const World& w, uint16_t first, uint8_t count);
 // --- Хуки системы событий (events.cpp)
 void events_on_action(World& w, ActionId action, Index ref);
 void events_tick(World& w);  // каждый тик, шаг 4
+// Показать событие письмом без допуска и броска (debug_fire_event). false — нет события или слота.
+bool events_force(World& w, Index ev);
 
 }  // namespace detail
 }  // namespace core

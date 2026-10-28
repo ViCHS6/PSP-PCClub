@@ -2,6 +2,9 @@
 
 #include "minigames/games_app.h"
 #include "ui/apps/cashier.h"
+#if PCCLUB_DEBUG_TOOLS
+#include "ui/apps/debug.h"
+#endif
 #include "ui/apps/ledger.h"
 #include "ui/apps/mail.h"
 #include "ui/apps/network.h"
@@ -19,6 +22,9 @@ void register_os_apps() {
     ledger_register();
     records_register();
     minigame::games_app_register();
+#if PCCLUB_DEBUG_TOOLS
+    debug_register();  // DBG: последним значком, хост — из main; к релизу выключить (T063)
+#endif
 }
 
 }  // namespace ui

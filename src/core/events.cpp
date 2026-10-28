@@ -97,8 +97,9 @@ Attempt admit(const World& w, Index ev, uint8_t* visitor) {
     return Attempt::kFired;
 }
 
-// Показать событие игроку: слот active, письмо, кулдаун, уведомление.
-void present(World& w, Index ev, uint8_t visitor) {
+// Показать событие игроку: слот active, письмо, кулдаун, уведомление. as_mail — письмом при
+// любом present.kind (отладка: другие способы показа UI пока не умеет).
+void present(World& w, Index ev, uint8_t visitor, bool as_mail = false) {
     const EventRec& e = w.data->events[ev];
     const int slot = free_active_slot(w);
     ActiveEvent& a = w.events.active[slot];
@@ -108,7 +109,7 @@ void present(World& w, Index ev, uint8_t visitor) {
     a.date = w.clock.date;
     a.minute = w.clock.minute;
     w.priv.ev_visitor_serial[slot] = visitor != kNoVisitor ? w.visitors[visitor].serial : 0;
-    if (e.present_kind == kPresentMail) {
+    if (as_mail || e.present_kind == kPresentMail) {
         // add_mail сдвигает ActiveEvent::mail остальных слотов; наш ещё 0xFF.
         a.mail = static_cast<uint8_t>(detail::add_mail(w, MailKind::kEvent, ev, 0));
     }
@@ -404,6 +405,13 @@ void events_on_action(World& w, ActionId action, Index) {
         const EventRec& e = d.events[i];
         if (e.trigger == kTrigOnAction && e.trigger_action == action) try_fire(w, static_cast<Index>(i));
     }
+}
+
+bool events_force(World& w, Index ev) {
+    if (ev >= w.data->event_count || free_active_slot(w) < 0) return false;
+    const Index owner = event_owner(*w.data, ev);
+    present(w, ev, owner != kNone ? regular_slot(w, owner) : kNoVisitor, true);
+    return true;
 }
 
 void events_tick(World& w) {

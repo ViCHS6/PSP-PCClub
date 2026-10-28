@@ -94,6 +94,7 @@ void fix_broken(World& w, uint8_t pc, int comp) {
 namespace detail {
 
 void break_pc(World& w, uint8_t pc, int comp) { break_component(w, pc, comp); }
+void set_pc_hung(World& w, uint8_t pc) { hang_pc(w, pc); }
 
 void pcs_tick(World& w) {
     for (int i = 0; i < w.club.seats; ++i) {
