@@ -55,15 +55,25 @@ add_library(pcclub_render OBJECT
     src/render/render_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_game OBJECT
     src/game/debug_overlay.cpp
-    src/game/demo_scene.cpp)
+    src/game/demo_scene.cpp
+    src/game/player.cpp
+    src/game/interact.cpp
+    src/game/interact_draw.cpp
+    src/game/player_demo.cpp)
 
-foreach(lib pcclub_platform pcclub_render pcclub_game)
+# --- ui: ОС администратора (T030, контракт — src/ui/ui_api.h).
+add_library(pcclub_ui OBJECT
+    src/ui/ui_common.cpp
+    src/ui/ui.cpp
+    src/ui/demo_app.cpp)
+
+foreach(lib pcclub_platform pcclub_render pcclub_game pcclub_ui)
     target_link_libraries(${lib} PRIVATE pcclub_options pcclub_core)
 endforeach()
 
 add_executable(pcclub src/main.cpp)
 target_link_libraries(pcclub PRIVATE
-    pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game)
+    pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game pcclub_ui)
 
 # Демо-ресурсы лежат относительно приложения одинаково на PC и PSP.
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
@@ -76,15 +86,20 @@ image.putdata([(94, 65, 42, 255) if (x // 8 + y // 8) % 2 == 0
                else (122, 86, 56, 255) for y in range(16) for x in range(16)])
 image.save(sys.argv[1])
 ]=])
-add_custom_command(
-    OUTPUT ${DEMO_ASSETS}/prop_desk_chipboard.msh
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_model.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/assets/placeholders/prop_desk_chipboard.obj
-            -o ${DEMO_ASSETS}/prop_desk_chipboard.msh
-    DEPENDS tools/convert_model.py assets/placeholders/prop_desk_chipboard.obj
-            assets/placeholders/prop_desk_chipboard.mtl
-    VERBATIM)
+# T010: заглушки T013 для демо управления.
+set(DEMO_MODELS)
+foreach(prop prop_desk_chipboard prop_crt17 prop_pc_case prop_chair_office)
+    add_custom_command(
+        OUTPUT ${DEMO_ASSETS}/${prop}.msh
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_model.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets/placeholders/${prop}.obj
+                -o ${DEMO_ASSETS}/${prop}.msh
+        DEPENDS tools/convert_model.py assets/placeholders/${prop}.obj
+                assets/placeholders/${prop}.mtl
+        VERBATIM)
+    list(APPEND DEMO_MODELS ${DEMO_ASSETS}/${prop}.msh)
+endforeach()
 add_custom_command(
     OUTPUT ${DEMO_ASSETS}/demo_checker.tex
     BYPRODUCTS ${DEMO_ASSETS}/demo_checker.png
@@ -95,9 +110,20 @@ add_custom_command(
             ${DEMO_ASSETS}/demo_checker.png -o ${DEMO_ASSETS}/demo_checker.tex --format t4
     DEPENDS tools/convert_texture.py ${CMAKE_CURRENT_BINARY_DIR}/demo_texture.py
     VERBATIM)
-add_custom_target(pcclub_demo_assets ALL DEPENDS
-    ${DEMO_ASSETS}/prop_desk_chipboard.msh ${DEMO_ASSETS}/demo_checker.tex)
+add_custom_target(pcclub_demo_assets ALL DEPENDS ${DEMO_MODELS} ${DEMO_ASSETS}/demo_checker.tex)
 add_dependencies(pcclub pcclub_demo_assets)
+
+# T010: data.pak рядом с приложением — демо берёт из него подсказки (strings_ru.json).
+file(GLOB_RECURSE PCCLUB_DATA_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/*.json ${CMAKE_CURRENT_SOURCE_DIR}/data/*.csv)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_data.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/data -o ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    DEPENDS tools/build_data.py ${PCCLUB_DATA_SOURCES}
+    VERBATIM)
+add_custom_target(pcclub_data ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/data.pak)
+add_dependencies(pcclub pcclub_data)
 
 # T041: исходники заглушки и бинарные ресурсы создаются только в build/.
 target_sources(pcclub_render PRIVATE src/render/anim.cpp src/render/anim_format.cpp)
@@ -229,6 +255,31 @@ endforeach()
 add_custom_target(pcclub_screen_assets ALL DEPENDS ${SCREEN_TEXTURE_OUTPUTS})
 add_dependencies(pcclub pcclub_screen_assets)
 
+# T030: шрифты UI (FNT1 + атлас TEX1 t4, docs/formats/ui.md §4) и data.pak со строками.
+set(UI_FONT_OUTPUTS)
+foreach(font font_ui12 font_mono12 font_ui14 font_ui14b)
+    add_custom_command(
+        OUTPUT ${DEMO_ASSETS}/${font}.tex ${DEMO_ASSETS}/${font}.fnt
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_texture.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/${font}.png -o ${DEMO_ASSETS}/${font}.tex --format t4
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/${font}.fnt ${DEMO_ASSETS}/${font}.fnt
+        DEPENDS tools/convert_texture.py assets/fonts/${font}.png assets/fonts/${font}.fnt
+        VERBATIM)
+    list(APPEND UI_FONT_OUTPUTS ${DEMO_ASSETS}/${font}.tex ${DEMO_ASSETS}/${font}.fnt)
+endforeach()
+file(GLOB PCCLUB_DATA_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/*.json ${CMAKE_CURRENT_SOURCE_DIR}/data/*.csv
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/events/*.json)
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_data.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/data -o ${CMAKE_CURRENT_BINARY_DIR}/data.pak
+    DEPENDS tools/build_data.py ${PCCLUB_DATA_SOURCES}
+    VERBATIM)
+add_custom_target(pcclub_ui_assets ALL DEPENDS ${UI_FONT_OUTPUTS} ${CMAKE_CURRENT_BINARY_DIR}/data.pak)
+add_dependencies(pcclub pcclub_ui_assets)
+
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspaudio)
     target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
@@ -266,6 +317,10 @@ else()
             tests/core/test_events.cpp
             tests/render/test_formats.cpp
             tests/render/test_resources.cpp
+            tests/game/test_player.cpp
+            tests/game/test_interact.cpp
+            src/game/player.cpp
+            src/game/interact.cpp
             src/render/render_common.cpp
             src/render/mesh_format.cpp
             src/render/texture_format.cpp
@@ -291,6 +346,17 @@ else()
         target_link_libraries(pcclub_audio_tests PRIVATE pcclub_core doctest::doctest SDL2::SDL2)
         add_dependencies(pcclub_audio_tests pcclub_demo_audio)
         add_test(NAME pcclub_audio_tests COMMAND pcclub_audio_tests)
+        target_sources(pcclub_tests PRIVATE tests/ui/test_ui_common.cpp src/ui/ui_common.cpp)
+        target_compile_definitions(pcclub_tests PRIVATE
+            PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
+        # Поведение ОС: ui.cpp с заглушками render/platform/audio внутри теста.
+        add_executable(pcclub_ui_tests tests/test_main.cpp tests/ui/test_ui_flow.cpp
+            src/ui/ui.cpp src/ui/ui_common.cpp)
+        target_compile_options(pcclub_ui_tests PRIVATE -Wall -Wextra)
+        target_compile_definitions(pcclub_ui_tests PRIVATE
+            PCCLUB_FONTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts")
+        target_link_libraries(pcclub_ui_tests PRIVATE pcclub_core doctest::doctest)
+        add_test(NAME pcclub_ui_tests COMMAND pcclub_ui_tests)
         set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
     endif()
 endif()
@@ -320,6 +386,15 @@ if(NOT PSP)
     add_dependencies(balance-runner balance_test_data)
 
     if(PCCLUB_TESTS)
+        add_executable(balance_bot_tests tests/test_main.cpp tests/tools/test_balance_bots.cpp
+            src/tools/balance_bots.cpp)
+        target_compile_options(balance_bot_tests PRIVATE -Wall -Wextra)
+        target_link_libraries(balance_bot_tests PRIVATE pcclub_core doctest::doctest)
+        target_compile_definitions(balance_bot_tests PRIVATE
+            PCCLUB_BALANCE_DATA="${CMAKE_CURRENT_BINARY_DIR}/data.pak")
+        add_dependencies(balance_bot_tests pcclub_data)
+        add_test(NAME balance_bot_tests COMMAND balance_bot_tests)
+        set_tests_properties(balance_bot_tests PROPERTIES TIMEOUT 10)
         file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/balance_smoke.cmake" CONTENT [=[
 file(MAKE_DIRECTORY "${OUT}")
 foreach(strategy passive normal aggressive)
