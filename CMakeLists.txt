@@ -179,6 +179,75 @@ add_custom_command(
 add_custom_target(pcclub_demo_audio ALL DEPENDS
     ${DEMO_ASSETS}/sfx_click.wav ${DEMO_ASSETS}/music_demo.wav)
 add_dependencies(pcclub pcclub_demo_audio)
+# T042: общий модуль экранов и временные ленты до слияния A011.
+target_sources(pcclub_render PRIVATE src/render/screen_tex.cpp)
+if(NOT PSP)
+    target_compile_definitions(pcclub_game PRIVATE PCCLUB_SCREEN_BENCH)
+endif()
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/screen_texture.py CONTENT [=[
+import subprocess
+import sys
+from pathlib import Path
+from PIL import Image, ImageDraw
+
+source, output, converter, screen_id = sys.argv[1:]
+source, output = Path(source), Path(output)
+static = screen_id in ("desktop", "bsod", "off")
+if source.is_file():
+    with Image.open(source) as image:
+        width, height = image.size
+    frames = height // 64
+    if width != 64 or height % 64 or (frames != 1 if static else not 4 <= frames <= 8):
+        raise SystemExit(f"{source}: expected 64x64" if static else
+                         f"{source}: expected 64x(64*N), N=4..8")
+else:
+    frames = 1 if static else 4
+    colors = {
+        "shooter": "#E04030", "rts": "#5E7A5A", "tbs": "#F0C020",
+        "rpg": "#30C050", "sim": "#2F3A55", "race": "#7A5638",
+        "action": "#6B4C30", "casual": "#D8D0B8", "desktop": "#4B6449",
+        "loading": "#222222", "bsod": "#2050C0", "off": "#080808"
+    }
+    image = Image.new("RGB", (64, 64 * frames), colors[screen_id])
+    draw = ImageDraw.Draw(image)
+    for frame in range(frames):
+        y = frame * 64
+        if frames > 1:
+            x = 4 + frame * 13
+            draw.rectangle((4, y + 48, 59, y + 55), fill="#222222")
+            draw.rectangle((x, y + 48, x + 12, y + 55), fill="#E8F0F0")
+        elif screen_id != "off":
+            for row in range(5):
+                draw.rectangle((5, y + 6 + row * 7, 25 + row * 5, y + 8 + row * 7), fill="#E8F0F0")
+    source = output.with_suffix(".png")
+    image.save(source)
+subprocess.run([sys.executable, converter, str(source), "-o", str(output),
+                "--format", "t4", "--frames", str(frames)], check=True)
+]=])
+# CONFIGURE_DEPENDS замечает появление PNG после слияния A011 без ручной настройки.
+file(GLOB SCREEN_SOURCE_PNGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/assets/textures/scr_*.png")
+file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/screen_sources.txt" CONTENT "${SCREEN_SOURCE_PNGS}\n")
+set(SCREEN_TEXTURE_OUTPUTS)
+foreach(screen_id shooter rts tbs rpg sim race action casual desktop loading bsod off)
+    set(screen_png "${CMAKE_CURRENT_SOURCE_DIR}/assets/textures/scr_${screen_id}.png")
+    set(screen_dependencies)
+    if(EXISTS "${screen_png}")
+        list(APPEND screen_dependencies "${screen_png}")
+    endif()
+    set(screen_tex "${DEMO_ASSETS}/scr_${screen_id}.tex")
+    add_custom_command(
+        OUTPUT "${screen_tex}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEMO_ASSETS}"
+        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/screen_texture.py"
+                "${screen_png}" "${screen_tex}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/convert_texture.py" "${screen_id}"
+        DEPENDS tools/convert_texture.py "${CMAKE_CURRENT_BINARY_DIR}/screen_texture.py"
+                "${CMAKE_CURRENT_BINARY_DIR}/screen_sources.txt" ${screen_dependencies}
+        VERBATIM)
+    list(APPEND SCREEN_TEXTURE_OUTPUTS "${screen_tex}")
+endforeach()
+add_custom_target(pcclub_screen_assets ALL DEPENDS ${SCREEN_TEXTURE_OUTPUTS})
+add_dependencies(pcclub pcclub_screen_assets)
 
 if(PSP)
     target_link_libraries(pcclub PRIVATE pspaudio)
@@ -247,5 +316,107 @@ else()
         add_dependencies(pcclub_audio_tests pcclub_demo_audio)
         add_test(NAME pcclub_audio_tests COMMAND pcclub_audio_tests)
         set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
+    endif()
+endif()
+
+if(NOT PSP AND PCCLUB_TESTS)
+    add_executable(pcclub_screen_tests tests/test_main.cpp
+        tests/render/test_screen_tex.cpp src/render/screen_tex.cpp)
+    target_compile_options(pcclub_screen_tests PRIVATE -Wall -Wextra)
+    target_link_libraries(pcclub_screen_tests PRIVATE pcclub_core doctest::doctest)
+    add_test(NAME pcclub_screen_tests COMMAND pcclub_screen_tests)
+endif()
+
+# --- T025: автономный прогон ядра; тестовый пак явно отделён от игрового контента T026.
+if(NOT PSP)
+    add_executable(balance-runner src/tools/balance_runner.cpp src/tools/balance_bots.cpp)
+    target_link_libraries(balance-runner PRIVATE pcclub_options pcclub_core)
+    file(GLOB_RECURSE BALANCE_TEST_INPUTS CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/tests/data_build/valid/*")
+    set(BALANCE_TEST_PAK "${CMAKE_CURRENT_BINARY_DIR}/balance_test.pak")
+    add_custom_command(
+        OUTPUT "${BALANCE_TEST_PAK}"
+        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/build_data.py"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/tests/data_build/valid" -o "${BALANCE_TEST_PAK}"
+        DEPENDS ${BALANCE_TEST_INPUTS} tools/build_data.py src/core/data_types.h docs/formats/data_pak.md
+        VERBATIM)
+    add_custom_target(balance_test_data DEPENDS "${BALANCE_TEST_PAK}")
+    add_dependencies(balance-runner balance_test_data)
+
+    if(PCCLUB_TESTS)
+        file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/balance_smoke.cmake" CONTENT [=[
+file(MAKE_DIRECTORY "${OUT}")
+foreach(strategy passive normal aggressive)
+    foreach(repeat 1 2)
+        execute_process(
+            COMMAND "${RUNNER}" --days 10 --seed 1 --strategy "${strategy}"
+                    --data "${DATA}" --out "${OUT}/${strategy}_${repeat}.csv"
+            RESULT_VARIABLE result OUTPUT_VARIABLE log ERROR_VARIABLE error)
+        if(NOT result STREQUAL "0")
+            message(FATAL_ERROR "${strategy}: ${result}: ${log} ${error}")
+        endif()
+        file(STRINGS "${OUT}/${strategy}_${repeat}.csv" rows)
+        list(LENGTH rows count)
+        list(GET rows 0 header)
+        if(NOT count EQUAL 11 OR NOT header STREQUAL
+            "day,date,money,revenue,expenses,profit,visitors_arrived,visitors_served,visitors_lost,load_pct,satisfaction_avg,reputation,pcs_working,hung_events,broken_events,debt")
+            message(FATAL_ERROR "Invalid CSV: ${strategy}, rows=${count}, header=${header}")
+        endif()
+        foreach(day RANGE 1 10)
+            list(GET rows ${day} row)
+            if(NOT row MATCHES "^${day},[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9],")
+                message(FATAL_ERROR "Invalid CSV day: ${row}")
+            endif()
+        endforeach()
+    endforeach()
+    file(SHA256 "${OUT}/${strategy}_1.csv" first)
+    file(SHA256 "${OUT}/${strategy}_2.csv" second)
+    if(NOT first STREQUAL second)
+        message(FATAL_ERROR "${strategy}: nondeterministic CSV")
+    endif()
+endforeach()
+function(expect_error)
+    execute_process(COMMAND "${RUNNER}" ${ARGN}
+        RESULT_VARIABLE result OUTPUT_VARIABLE log ERROR_VARIABLE error)
+    if(result STREQUAL "0" OR error STREQUAL "")
+        message(FATAL_ERROR "Expected an error for ${ARGN}: ${log}")
+    endif()
+endfunction()
+expect_error(--days 0)
+expect_error(--days -1)
+expect_error(--days 1.5)
+expect_error(--days 2147483648)
+expect_error(--days)
+expect_error(--days 1 --days 2)
+expect_error(--seed -1)
+expect_error(--seed 4294967296)
+expect_error(--seed 12x)
+expect_error(--strategy unknown)
+expect_error(--unknown 1)
+expect_error(--data "${OUT}/missing.pak")
+expect_error(--data "${DATA}" --out "${OUT}/missing/dir/output.csv")
+file(SHA256 "${DATA}" original_data)
+expect_error(--data "${DATA}" --out "${DATA}")
+file(SHA256 "${DATA}" current_data)
+if(NOT original_data STREQUAL current_data)
+    message(FATAL_ERROR "Runner overwrote the input data")
+endif()
+execute_process(
+    COMMAND "${PYTHON}" "${PLOT}" "${OUT}/passive_1.csv" "${OUT}/normal_1.csv"
+            "${OUT}/aggressive_1.csv" -o "${OUT}/balance.html"
+    RESULT_VARIABLE result OUTPUT_VARIABLE log ERROR_VARIABLE error)
+if(NOT result STREQUAL "0")
+    message(FATAL_ERROR "Plot: ${log} ${error}")
+endif()
+]=])
+        add_test(NAME balance_runner_smoke COMMAND ${CMAKE_COMMAND}
+            "-DRUNNER=$<TARGET_FILE:balance-runner>" "-DDATA=${BALANCE_TEST_PAK}"
+            "-DOUT=${CMAKE_CURRENT_BINARY_DIR}/balance_smoke" "-DPYTHON=${Python3_EXECUTABLE}"
+            "-DPLOT=${CMAKE_CURRENT_SOURCE_DIR}/tools/plot_balance.py"
+            -P "${CMAKE_CURRENT_BINARY_DIR}/balance_smoke.cmake")
+        set_tests_properties(balance_runner_smoke PROPERTIES TIMEOUT 30)
+        add_test(NAME balance_runner_90days COMMAND balance-runner --days 90 --seed 1
+            --strategy normal --out "${CMAKE_CURRENT_BINARY_DIR}/balance_90.csv")
+        set_tests_properties(balance_runner_90days PROPERTIES TIMEOUT 10)
     endif()
 endif()

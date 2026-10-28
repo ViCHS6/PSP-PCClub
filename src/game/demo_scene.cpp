@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdio>
 #include "platform/audio_api.h"
+#include <cstdlib>
 
 namespace game {
 namespace {
@@ -60,6 +61,36 @@ render::MeshId create_floor() {
 bool DemoScene::init() {
     audio::sound_load_file("assets/sfx_click.wav");
     audio::music_play("assets/music_demo.wav", true);
+    if (!render::screens_init()) return false;
+    const core::Genre genres[8] = {
+        core::kGenreShooterTeam, core::kGenreRts, core::kGenreTbs, core::kGenreArpg,
+        core::kGenreSim, core::kGenreRace, core::kGenreAction, core::kGenreCasual
+    };
+    core::GameRec games[8]{};
+    for (size_t i = 0; i < 8; ++i) games[i].genre = genres[i];
+    core::GameData data;
+    data.games = games;
+    data.game_count = 8;
+    for (size_t i = 0; i < 16; ++i) {
+        core::Pc pc{};
+        pc.state = core::PcState::kBusy;
+        pc.running_game = static_cast<core::Index>(i < 8 ? i : 0);
+        if (i == 8 || i == 9) pc.state = core::PcState::kIdle;
+        if (i == 10) pc.state = core::PcState::kHung;
+        if (i == 11) pc.state = core::PcState::kOff;
+        render::screen_state_init(screens_[i], i, pc, data);
+        if (i == 9) {
+            pc.state = core::PcState::kBusy;
+            render::screen_select(screens_[i], pc, data);
+        }
+    }
+#ifdef PCCLUB_SCREEN_BENCH
+    screen_bench_ = std::getenv("PCCLUB_SCREEN_BENCH") != nullptr;
+    // Для замера два одинаковых запуска: 0 и 16 мониторов, по 150+ кадров.
+    bench_monitors_ = std::getenv("PCCLUB_SCREEN_BENCH_16") != nullptr;
+    if (screen_bench_) std::fprintf(stderr, "T042 benchmark: %u monitors; warmup 30, sample 120 frames\n",
+                                    bench_monitors_ ? 16u : 0u);
+#endif
     cube_ = create_cube();
     floor_ = create_floor();
     checker_ = render::texture_load_file("assets/demo_checker.tex");
@@ -80,6 +111,16 @@ bool DemoScene::init() {
 }
 
 void DemoScene::update(float dt, const platform::InputState& input) {
+    if (input.pressed & platform::kButtonTriangle) show_screens_ = !show_screens_;
+    render::screens_update(screens_, 16, dt);
+    // Единственный демонстрационный слот повторяет загрузку, чтобы она была видна
+    // на снимке после 120 кадров; остальные состояния работают обычным образом.
+    loading_demo_time_ += dt;
+    if (loading_demo_time_ >= render::kScreenLoadingSeconds) {
+        loading_demo_time_ = 0.0f;
+        screens_[9].screen = render::ScreenId::kLoading;
+        screens_[9].loading_remaining = render::kScreenLoadingSeconds;
+    }
     constexpr float kTurnSpeed = 1.8f;  // рад/с
     yaw_ += input.stick_x * kTurnSpeed * dt;
     pitch_ += input.stick_y * kTurnSpeed * dt;
@@ -101,6 +142,35 @@ void DemoScene::update(float dt, const platform::InputState& input) {
 }
 
 void DemoScene::draw() const {
+    if (show_screens_) {
+#ifdef PCCLUB_SCREEN_BENCH
+        if (screen_bench_) {
+            const uint64_t now = platform::time_us();
+            if (bench_frame_ > 30 && bench_frame_ <= 150) bench_total_us_ += now - bench_previous_us_;
+            if (bench_frame_ == 150) {
+                std::fprintf(stderr, "T042 benchmark: monitors=%u frame_us=%u draw_calls=%u triangles=%u\n",
+                    bench_monitors_ ? 16u : 0u, unsigned(bench_total_us_ / 120),
+                    unsigned(render::stats().draw_calls), unsigned(render::stats().triangles));
+            }
+            bench_previous_us_ = now;
+            ++bench_frame_;
+        }
+#endif
+        // Сетка ниже включённого по умолчанию отладочного оверлея.
+        const core::Mat4 view = core::mat4_look_at({0.0f, 0.25f, 1.75f}, {0.0f, 0.25f, 0.0f}, {0, 1, 0});
+        const core::Mat4 projection = core::mat4_perspective(core::deg_to_rad(60.0f),
+            static_cast<float>(render::kScreenWidth) / render::kScreenHeight, 0.1f, 10.0f);
+        render::set_camera(view, projection);
+#ifdef PCCLUB_SCREEN_BENCH
+        if (screen_bench_ && !bench_monitors_) return;
+#endif
+        for (size_t i = 0; i < 16; ++i) {
+            const float x = (static_cast<float>(i % 4) - 1.5f) * 0.60f;
+            const float y = (1.5f - static_cast<float>(i / 4)) * 0.29f;
+            render::screen_draw(screens_[i], core::mat4_translate({x, y, 0.0f}));
+        }
+        return;
+    }
     constexpr float kDistance = 4.0f;
     const core::Vec3 target = {0, 0.5f, 0};
     const core::Vec3 eye = {
