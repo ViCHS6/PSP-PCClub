@@ -43,6 +43,8 @@ target_link_libraries(pcclub_core PRIVATE pcclub_options)
 # --- Платформа, рендер, игра. OBJECT-библиотеки: на PSP объекты должны попасть в исполняемый
 # файл целиком (PSP_MODULE_INFO не вызывается из кода, статическая библиотека его бы выкинула).
 add_library(pcclub_platform OBJECT src/platform/${PCCLUB_TARGET}/platform_${PCCLUB_TARGET}.cpp)
+target_sources(pcclub_platform PRIVATE src/platform/audio_mixer.cpp
+    src/platform/${PCCLUB_TARGET}/audio_${PCCLUB_TARGET}.cpp)
 add_library(pcclub_render OBJECT
     src/render/render_common.cpp
     src/render/mesh_format.cpp
@@ -96,7 +98,48 @@ add_custom_target(pcclub_demo_assets ALL DEPENDS
     ${DEMO_ASSETS}/prop_desk_chipboard.msh ${DEMO_ASSETS}/demo_checker.tex)
 add_dependencies(pcclub pcclub_demo_assets)
 
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/demo_audio.py CONTENT [=[
+import math
+import os
+import struct
+import sys
+import wave
+
+rate = 22050
+def write(name, samples):
+    with wave.open(os.path.join(sys.argv[1], name), "wb") as out:
+        out.setparams((1, 2, rate, 0, "NONE", "not compressed"))
+        out.writeframes(b"".join(struct.pack("<h", round(x)) for x in samples))
+
+write("sfx_click.wav", (
+    11000 * math.sin(2 * math.pi * 1400 * i / rate)
+    * min(1, i / (rate * 0.005)) * max(0, 1 - i / (rate * 0.08)) ** 3
+    for i in range(round(rate * 0.08))))
+
+notes = (220, 261.6256, 329.6276, 440, 329.6276, 261.6256, 196, 261.6256)
+def music():
+    for i in range(rate * 8):
+        beat = i // (rate // 2)
+        t = (i % (rate // 2)) / rate
+        envelope = min(1, t / 0.01) * min(1, (0.5 - t) / 0.02) * math.exp(-3 * t)
+        arp = math.sin(2 * math.pi * notes[beat % len(notes)] * t)
+        chord = sum(math.sin(2 * math.pi * hz * i / rate) for hz in (110, 165, 220)) / 3
+        edge = min(1, i / (rate * 0.02), (rate * 8 - 1 - i) / (rate * 0.02))
+        yield (arp * envelope * 4400 + chord * 1200) * edge
+write("music_demo.wav", music())
+]=])
+add_custom_command(
+    OUTPUT ${DEMO_ASSETS}/sfx_click.wav ${DEMO_ASSETS}/music_demo.wav
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${DEMO_ASSETS}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/demo_audio.py ${DEMO_ASSETS}
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/demo_audio.py
+    VERBATIM)
+add_custom_target(pcclub_demo_audio ALL DEPENDS
+    ${DEMO_ASSETS}/sfx_click.wav ${DEMO_ASSETS}/music_demo.wav)
+add_dependencies(pcclub pcclub_demo_audio)
+
 if(PSP)
+    target_link_libraries(pcclub PRIVATE pspaudio)
     target_link_libraries(pcclub PRIVATE pspgu pspge pspdisplay pspctrl psppower)
     create_pbp_file(
         TARGET pcclub
@@ -146,5 +189,12 @@ else()
             target_link_libraries(pcclub_formula_tests_obj PRIVATE pcclub_core doctest::doctest)
         endif()
         add_test(NAME pcclub_tests COMMAND pcclub_tests)
+        add_executable(pcclub_audio_tests tests/test_main.cpp tests/platform/test_audio_mixer.cpp
+            src/platform/audio_mixer.cpp src/platform/pc/platform_pc.cpp src/platform/pc/audio_pc.cpp)
+        target_compile_options(pcclub_audio_tests PRIVATE -Wall -Wextra)
+        target_link_libraries(pcclub_audio_tests PRIVATE pcclub_core doctest::doctest SDL2::SDL2)
+        add_dependencies(pcclub_audio_tests pcclub_demo_audio)
+        add_test(NAME pcclub_audio_tests COMMAND pcclub_audio_tests)
+        set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
     endif()
 endif()

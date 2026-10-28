@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <climits>
 
 #include "platform/pc/pc_options.h"
 #include "platform/platform_api.h"
@@ -25,6 +26,7 @@ bool g_exit = false;
 int g_frame = 0;
 char g_base_path[512] = "";
 size_t g_heap_peak = 0;
+FILE* g_files[kMaxOpenFiles]{};
 
 size_t heap_used() {
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 33))
@@ -152,6 +154,7 @@ bool init(const InitParams& params) {
 
 void shutdown() {
     audio_stop();
+    for (int i = 0; i < kMaxOpenFiles; ++i) file_close(i);
     if (g_pad) SDL_GameControllerClose(g_pad);
     if (g_gl) SDL_GL_DeleteContext(g_gl);
     if (g_window) SDL_DestroyWindow(g_window);
@@ -225,15 +228,43 @@ bool file_read(const char* path, void* dst, size_t capacity, size_t* out_read) {
     return true;
 }
 
+int file_open(const char* path) {
+    char full[1024];
+    if (!build_path(path, full, sizeof(full))) return kNoFile;
+    for (int i = 0; i < kMaxOpenFiles; ++i) if (!g_files[i]) {
+        FILE* f = std::fopen(full, "rb");
+        if (!f) return kNoFile;
+        // Буфер stdio иначе лениво выделяется при первом fread в update().
+        std::setvbuf(f, nullptr, _IONBF, 0);
+        g_files[i] = f;
+        return i;
+    }
+    return kNoFile;
+}
+
+bool file_read_at(int file, size_t offset, void* dst, size_t size, size_t* out_read) {
+    if (out_read) *out_read = 0;
+    if (file < 0 || file >= kMaxOpenFiles || !g_files[file] || (!dst && size) || offset > LONG_MAX)
+        return false;
+    FILE* f = g_files[file];
+    std::clearerr(f);
+    if (std::fseek(f, static_cast<long>(offset), SEEK_SET)) return false;
+    const size_t got = size ? std::fread(dst, 1, size, f) : 0;
+    if (out_read) *out_read = got;
+    return !std::ferror(f);
+}
+
+void file_close(int file) {
+    if (file < 0 || file >= kMaxOpenFiles || !g_files[file]) return;
+    std::fclose(g_files[file]);
+    g_files[file] = nullptr;
+}
+
 MemoryStats memory_stats() {
     MemoryStats s;
     s.heap_used = heap_used();
     s.heap_peak = g_heap_peak > s.heap_used ? g_heap_peak : s.heap_used;
     return s;
 }
-
-bool audio_start(AudioCallback, void*) { return false; }
-
-void audio_stop() {}
 
 }  // namespace platform

@@ -27,6 +27,7 @@ volatile bool g_exit = false;
 InputState g_input;
 char g_base_path[256] = "";
 size_t g_heap_peak = 0;
+SceUID g_files[kMaxOpenFiles] = {-1, -1, -1, -1};
 
 int exit_callback(int, int, void*) {
     g_exit = true;
@@ -94,6 +95,7 @@ bool init(const InitParams& params) {
 
 void shutdown() {
     audio_stop();
+    for (int i = 0; i < kMaxOpenFiles; ++i) file_close(i);
     sceKernelExitGame();
 }
 
@@ -143,6 +145,36 @@ bool file_read(const char* path, void* dst, size_t capacity, size_t* out_read) {
     return true;
 }
 
+int file_open(const char* path) {
+    char full[512];
+    if (!build_path(path, full, sizeof(full))) return kNoFile;
+    for (int i = 0; i < kMaxOpenFiles; ++i) if (g_files[i] < 0) {
+        const SceUID fd = sceIoOpen(full, PSP_O_RDONLY, 0);
+        if (fd < 0) return kNoFile;
+        g_files[i] = fd;
+        return i;
+    }
+    return kNoFile;
+}
+
+bool file_read_at(int file, size_t offset, void* dst, size_t size, size_t* out_read) {
+    if (out_read) *out_read = 0;
+    if (file < 0 || file >= kMaxOpenFiles || g_files[file] < 0 || (!dst && size) || size > 0x7FFFFFFFu)
+        return false;
+    const SceUID fd = g_files[file];
+    if (sceIoLseek(fd, static_cast<SceOff>(offset), PSP_SEEK_SET) < 0) return false;
+    const int got = size ? sceIoRead(fd, dst, static_cast<unsigned int>(size)) : 0;
+    if (got < 0) return false;
+    if (out_read) *out_read = static_cast<size_t>(got);
+    return true;
+}
+
+void file_close(int file) {
+    if (file < 0 || file >= kMaxOpenFiles || g_files[file] < 0) return;
+    sceIoClose(g_files[file]);
+    g_files[file] = -1;
+}
+
 MemoryStats memory_stats() {
     MemoryStats s;
     s.heap_used = mallinfo().uordblks;
@@ -151,9 +183,5 @@ MemoryStats memory_stats() {
     s.system_free = sceKernelTotalFreeMemSize();
     return s;
 }
-
-bool audio_start(AudioCallback, void*) { return false; }
-
-void audio_stop() {}
 
 }  // namespace platform

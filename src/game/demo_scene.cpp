@@ -1,6 +1,7 @@
 #include "game/demo_scene.h"
 
 #include <cmath>
+#include "platform/audio_api.h"
 
 namespace game {
 namespace {
@@ -54,6 +55,8 @@ render::MeshId create_floor() {
 }  // namespace
 
 bool DemoScene::init() {
+    audio::sound_load_file("assets/sfx_click.wav");
+    audio::music_play("assets/music_demo.wav", true);
     cube_ = create_cube();
     floor_ = create_floor();
     checker_ = render::texture_load_file("assets/demo_checker.tex");
@@ -73,6 +76,7 @@ void DemoScene::update(float dt, const platform::InputState& input) {
     if (pitch_ < 0.05f) pitch_ = 0.05f;
     if (pitch_ > 1.4f) pitch_ = 1.4f;
     if (input.pressed & platform::kButtonCross) auto_spin_ = !auto_spin_;
+    if (input.pressed & platform::kButtonCross) audio::play(audio::sound_find("sfx_click"), 0.8f);
     if (auto_spin_) spin_ += dt;
 }
 

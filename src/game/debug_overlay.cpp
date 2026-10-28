@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include "render/render_api.h"
+#include "platform/audio_api.h"
 
 namespace game {
 namespace {
@@ -39,7 +40,7 @@ void DebugOverlay::draw() const {
     char line[128];
     int y = 4;
 
-    render::draw_rect(2, 2, 340, kLine * 5 + 6, rgba(0, 0, 0, 160));
+    render::draw_rect(2, 2, 468, kLine * 6 + 6, rgba(0, 0, 0, 160));
 
     // До первого полного окна усреднения — оценка по накопленному.
     float fps = fps_, frame_ms = frame_ms_;
@@ -91,6 +92,13 @@ void DebugOverlay::draw() const {
             n += std::snprintf(line + n, sizeof(line) - n, "%s ", name.text);
         }
     }
+    render::debug_text(6, y, line, kText);
+
+    y += kLine;
+    const audio::Stats& as = audio::stats();
+    std::snprintf(line, sizeof(line), "звук: голоса %u, underrun %u, микс %u/%u мкс",
+                  unsigned(as.voices_active), unsigned(as.music_underruns),
+                  unsigned(as.mix_us_last), unsigned(as.mix_us_peak));
     render::debug_text(6, y, line, kText);
 
     render::debug_text(6, render::kScreenHeight - kLine - 4,
