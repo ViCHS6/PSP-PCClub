@@ -228,7 +228,9 @@ TextureId texture_load_tex(const char* name, const void* data, size_t size) {
     if (!format::validate_texture(data, size, &view, &error)) return fail(error);
     const auto& h = view.h;
     const uint64_t frame_bytes = uint64_t(h.width) * h.height * 4;
-    const uint64_t bytes = frame_bytes * h.frame_count;
+    // Арену считаем как на PSP — по размеру TEX1 (CLUT + кадры), а не по раскрытому RGBA,
+    // который живёт в памяти драйвера GL: иначе PC отказывает там, где PSP укладывается.
+    const uint64_t bytes = size;
     if (!g_textures || g_texture_count >= g_config.max_textures ||
         bytes > g_config.texture_arena_bytes || g_texture_bytes > g_config.texture_arena_bytes - bytes)
         return fail("texture limit/arena exhausted");
