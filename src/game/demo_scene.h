@@ -1,8 +1,13 @@
 #pragma once
-// ВРЕМЕННАЯ сцена T001/T012: куб и загруженный стол. Заменяется залом клуба (T010, T014).
+// ВРЕМЕННАЯ сцена T001/T012/T042: экраны, куб и стол. Заменяется залом клуба (T010, T014).
+// PC-замер (включает swap/vsync, 30 кадров прогрева и 120 измерений):
+//   PCCLUB_SCREEN_BENCH=1 build/pc/pcclub --frames 180
+//   PCCLUB_SCREEN_BENCH=1 PCCLUB_SCREEN_BENCH_16=1 build/pc/pcclub --frames 180
+// Треугольник (I на PC) переключает экраны и старую сцену.
 #include "platform/platform_api.h"
 #include "render/render_api.h"
 #include "render/anim.h"
+#include "render/screen_tex.h"
 
 namespace game {
 
@@ -13,6 +18,15 @@ public:
     void draw() const;
 
 private:
+    render::ScreenState screens_[16]{};
+    float loading_demo_time_ = 0.0f;
+    bool show_screens_ = true;  // треугольник переключает старую сцену T001
+    // Поля PC-замера сохраняют одинаковую раскладку класса во всех единицах трансляции.
+    bool screen_bench_ = false;
+    bool bench_monitors_ = false;
+    mutable unsigned bench_frame_ = 0;
+    mutable uint64_t bench_previous_us_ = 0;
+    mutable uint64_t bench_total_us_ = 0;
     render::MeshId cube_ = render::kInvalidMesh;
     render::MeshId floor_ = render::kInvalidMesh;
     render::TextureId checker_ = render::kNoTexture;
