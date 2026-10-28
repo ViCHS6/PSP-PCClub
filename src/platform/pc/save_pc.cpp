@@ -4,6 +4,7 @@
 #include "platform/pc/pc_options.h"
 #include "platform/platform_api.h"
 #include "platform/save_api.h"
+#include "platform/save_debug.h"
 
 namespace platform {
 
@@ -13,6 +14,8 @@ constexpr const char* kSaveFile = "save.bin";
 constexpr const char* kTempFile = "save.tmp";
 
 }  // namespace
+
+int save_last_code() { return 0; }
 
 SaveResult save_write(const void* data, size_t size, const SaveMeta&, SaveUi) {
     if (size > kSaveCapacity) return SaveResult::kTooBig;

@@ -11,6 +11,10 @@
 #include "minigames/games_app.h"
 #include "minigames/sdk.h"
 #include "ui/apps/os_apps.h"
+#if PCCLUB_DEBUG_TOOLS
+#include "core/debug_cmds.h"
+#include "ui/apps/debug.h"
+#endif
 #include "ui/demo_app.h"
 #include "ui/ui_api.h"
 
@@ -31,7 +35,11 @@ float g_sim_minutes = 0.0f;
 void sim_update(float dt) {
     game::autosave_update(g_world);  // T060: утро и закрытие — до cmd_end_day
     if (g_world.clock.phase == core::Phase::kClosed) core::cmd_end_day(g_world);
+#if PCCLUB_DEBUG_TOOLS
+    g_sim_minutes += dt * core::debug_minutes_per_real_second(g_world, ui::debug_speed());  // DBG: ×4/×16
+#else
     g_sim_minutes += dt * core::minutes_per_real_second(g_world);
+#endif
     while (g_sim_minutes >= 1.0f) {
         core::tick(g_world);
         g_sim_minutes -= 1.0f;
@@ -103,6 +111,9 @@ int main(int argc, char** argv) {
         minigame::register_builtin();
         if (have_data) minigame::validate(g_data);
         ui::register_os_apps();
+#if PCCLUB_DEBUG_TOOLS
+        ui::debug_set_host(ui::debug_game_host());
+#endif
         demo_app = ui::demo_register();  // демо T030 — последними значками
         // PC, для снимков: --skip-minutes N — промотать мир, --ui-app <id> — открыть программу.
         const char* skip = arg_value(argc, argv, "--skip-minutes");
@@ -186,6 +197,9 @@ int main(int argc, char** argv) {
         minigame::draw();
         overlay.draw();
         render::end_frame();
+#if PCCLUB_DEBUG_TOOLS
+        ui::debug_after_frame(world);  // DBG: запись/чтение слота — между кадрами (platform/save_api.h)
+#endif
     }
 
     ui::shutdown();

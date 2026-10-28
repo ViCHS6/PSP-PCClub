@@ -38,6 +38,7 @@ add_library(pcclub_core STATIC
     src/core/conditions.cpp
     src/core/events.cpp
     src/core/save.cpp
+    src/core/debug_cmds.cpp
     src/core/hooks_stub.cpp)
 target_include_directories(pcclub_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pcclub_core PRIVATE pcclub_options)
@@ -107,6 +108,17 @@ add_executable(pcclub src/main.cpp)
 target_link_libraries(pcclub PRIVATE
     pcclub_options pcclub_core pcclub_platform pcclub_render pcclub_game pcclub_ui
     pcclub_minigames)
+
+# DBG: программа ОС «Отладка» (src/ui/apps/debug*). ON и для PSP: тесты идут на Release-сборке
+# с PSP Go. Выключить перед релизом — T063.
+option(PCCLUB_DEBUG_TOOLS "Программа «Отладка» в ОС администратора" ON)
+if(PCCLUB_DEBUG_TOOLS)
+    target_sources(pcclub_ui PRIVATE src/ui/apps/debug.cpp)
+    # Хост — game/autosave: только в игре (minigame-runner собирает pcclub_ui без pcclub_game).
+    target_sources(pcclub PRIVATE src/ui/apps/debug_host.cpp)
+    target_compile_definitions(pcclub_options INTERFACE PCCLUB_DEBUG_TOOLS=1)
+endif()
+message(STATUS "pcclub: «Отладка» — ${PCCLUB_DEBUG_TOOLS}")
 
 # Демо-ресурсы лежат относительно приложения одинаково на PC и PSP.
 find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
@@ -359,6 +371,7 @@ else()
             tests/core/test_sim_run.cpp
             tests/core/test_events.cpp
             tests/core/test_save.cpp
+            tests/core/test_debug_cmds.cpp
             tests/render/test_formats.cpp
             tests/render/test_resources.cpp
             tests/game/test_player.cpp
@@ -425,6 +438,17 @@ else()
         target_link_libraries(pcclub_os_tests PRIVATE pcclub_core doctest::doctest)
         add_dependencies(pcclub_os_tests pcclub_ui_assets)
         add_test(NAME pcclub_os_tests COMMAND pcclub_os_tests)
+        # DBG: «Отладка» — настоящие data.pak и ядро, заглушки виджетов и носителя внутри теста.
+        if(PCCLUB_DEBUG_TOOLS)
+            add_executable(pcclub_debug_tests tests/test_main.cpp tests/ui/test_debug_app.cpp
+                src/ui/apps/debug.cpp src/ui/ui_common.cpp)
+            target_compile_options(pcclub_debug_tests PRIVATE -Wall -Wextra)
+            target_compile_definitions(pcclub_debug_tests PRIVATE
+                PCCLUB_DATA_PAK="${CMAKE_CURRENT_BINARY_DIR}/data.pak")
+            target_link_libraries(pcclub_debug_tests PRIVATE pcclub_core doctest::doctest)
+            add_dependencies(pcclub_debug_tests pcclub_ui_assets)
+            add_test(NAME pcclub_debug_tests COMMAND pcclub_debug_tests)
+        endif()
         # Хост и игры SDK (T050): заглушки render/ui внутри теста.
         add_executable(pcclub_minigame_tests tests/test_main.cpp tests/minigames/test_host.cpp
             src/minigames/host.cpp ${PCCLUB_MINIGAME_SOURCES})

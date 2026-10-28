@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "platform/save_api.h"
+#include "platform/save_debug.h"
 
 namespace platform {
 
@@ -26,6 +27,14 @@ constexpr int kResultCancelled = 1;
 constexpr unsigned kBackground = 0xFF201C18u;  // тёмный фон под диалогом, ABGR
 
 alignas(16) uint32_t g_list[64];
+// Копия данных для записи: утилите — буфер на всю ёмкость слота, не ровно по данным.
+alignas(64) uint8_t g_write_buf[kSaveCapacity + 64];
+
+// secureVersion структуры 0x600 (_PSP_FW_VERSION ≥ 200): 0, 2, 3 требуют ключ игры (key), без него
+// прошивка отвергает запись — 0x80110388 на Go (проверка как MissingRequiredKey в PPSSPP; сам
+// эмулятор такую запись пропускал). 1 — шифрование без ключа игры: ключа у нас нет.
+constexpr uint32_t kSecureNoKey = 1;
+int g_last_code = 0;  // save_debug.h
 SceUtilitySavedataParam g_param;
 
 void copy(char* dst, size_t cap, const char* src) { std::snprintf(dst, cap, "%s", src ? src : ""); }
@@ -42,6 +51,7 @@ void prepare(PspUtilitySavedataMode mode, void* buf, size_t buf_size, size_t dat
     g_param.base.soundThread = 0x10;
     g_param.mode = mode;
     g_param.overwrite = 1;
+    g_param.secureVersion = kSecureNoKey;
     g_param.focus = PSP_UTILITY_SAVEDATA_FOCUS_LATEST;
     copy(g_param.gameName, sizeof(g_param.gameName), kGameName);
     copy(g_param.saveName, sizeof(g_param.saveName), kSaveName);
@@ -54,7 +64,8 @@ void prepare(PspUtilitySavedataMode mode, void* buf, size_t buf_size, size_t dat
 // Крутит кадры, пока утилита не закончит. dialog — утилита рисует окно поверх нашего фона;
 // иначе (AUTO-режимы, окна нет) экран не трогаем — остаётся последний кадр игры.
 int run(bool dialog) {
-    if (sceUtilitySavedataInitStart(&g_param) < 0) return -1;
+    const int init = sceUtilitySavedataInitStart(&g_param);
+    if (init < 0) return g_last_code = init;
     for (;;) {
         if (dialog) {
             sceGuStart(GU_DIRECT, g_list);
@@ -74,7 +85,7 @@ int run(bool dialog) {
         sceDisplayWaitVblankStart();
         if (dialog) sceGuSwapBuffers();
     }
-    return g_param.base.result;
+    return g_last_code = g_param.base.result;
 }
 
 SaveResult to_result(int code) {
@@ -88,13 +99,16 @@ SaveResult to_result(int code) {
 
 }  // namespace
 
+int save_last_code() { return g_last_code; }
+
 SaveResult save_write(const void* data, size_t size, const SaveMeta& meta, SaveUi ui) {
     if (size > kSaveCapacity) return SaveResult::kTooBig;
     if (!data) return SaveResult::kError;
     const bool dialog = ui == SaveUi::kDialog;
-    // Утилита буфер только читает; const снимаем ради её структуры.
-    prepare(dialog ? PSP_UTILITY_SAVEDATA_SAVE : PSP_UTILITY_SAVEDATA_AUTOSAVE, const_cast<void*>(data),
-            size, size);
+    std::memcpy(g_write_buf, data, size);
+    std::memset(g_write_buf + size, 0, sizeof(g_write_buf) - size);
+    prepare(dialog ? PSP_UTILITY_SAVEDATA_SAVE : PSP_UTILITY_SAVEDATA_AUTOSAVE, g_write_buf, sizeof(g_write_buf),
+            size);
     copy(g_param.sfoParam.title, sizeof(g_param.sfoParam.title), meta.title);
     copy(g_param.sfoParam.savedataTitle, sizeof(g_param.sfoParam.savedataTitle), meta.title);
     copy(g_param.sfoParam.detail, sizeof(g_param.sfoParam.detail), meta.detail);
