@@ -118,6 +118,15 @@ void Player::update(float dt, const platform::InputState& input, const Colliders
         position_.x += -std::sin(yaw_) * step;
         position_.z += -std::cos(yaw_) * step;
     }
+    float strafe = 0.0f;
+    if (input.held & platform::kButtonRight) strafe += 1.0f;
+    if (input.held & platform::kButtonLeft) strafe -= 1.0f;
+    if (strafe != 0.0f) {
+        // Вправо от взгляда при yaw: (cos, 0, −sin).
+        const float step = strafe * kStrafeSpeed * dt;
+        position_.x += std::cos(yaw_) * step;
+        position_.z += -std::sin(yaw_) * step;
+    }
     position_ = colliders.resolve(position_, kRadius);
 }
 

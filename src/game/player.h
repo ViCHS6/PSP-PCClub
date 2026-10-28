@@ -29,6 +29,7 @@ namespace game {
 namespace controls {
 constexpr float kWalkSpeed = 1.4f;          // м/с — шаг взрослого
 constexpr float kRunSpeed = 2.6f;           // м/с с R; зал 8×6 м — диагональ за ~4 с (GDD §9.1: ≤ 5–7 с)
+constexpr float kStrafeSpeed = 0.8f;        // м/с, крестовина ←/→ — «слегка вбок», R не ускоряет (T015)
 constexpr float kTurnSpeed = 2.4f;          // рад/с при стике до упора
 constexpr float kLookYawSpeed = 2.0f;       // рад/с, L + стик
 constexpr float kLookPitchSpeed = 1.6f;     // рад/с, L + стик
@@ -37,9 +38,9 @@ constexpr float kPitchMin = -1.05f;         // −60°: вниз — на кла
 constexpr float kPitchMax = 0.87f;          // +50°: вверх — на полку и часы
 constexpr float kPitchNeutral = -0.14f;     // −8°: куда возвращается взгляд при ходьбе
 constexpr float kPitchReturn = 2.5f;        // 1/с — скорость возврата наклона при ходьбе
-constexpr float kAimPull = 5.0f;            // 1/с — притяжение к цели липкого прицела
+constexpr float kAimPull = 4.75f;           // 1/с — притяжение к цели (T015 на Go: −5 % от 5,0)
 constexpr float kAimPullMaxInput = 0.6f;    // при повороте стика сильнее — притяжения нет (вырваться)
-constexpr float kAimFriction = 0.55f;       // множитель скорости поворота, пока есть цель
+constexpr float kAimFriction = 0.57f;       // множитель поворота при цели (T015: замедление 45 % → 43 %)
 constexpr float kEyeHeight = 1.6f;          // м — глаза стоящего взрослого
 constexpr float kRadius = 0.25f;            // м — радиус игрока в плоскости XZ
 constexpr float kHeight = 1.75f;            // м — для отбора препятствий по высоте
@@ -77,6 +78,7 @@ public:
 
     // aim_point — точка липкого прицела с прошлого кадра или nullptr.
     // L удерживается — стик управляет только взглядом (обзор), иначе Y — ходьба, X — поворот.
+    // Крестовина ←/→ — шаг вбок, в любом режиме (в том числе с L).
     void update(float dt, const platform::InputState& input, const Colliders& colliders,
                 const core::Vec3* aim_point);
 
