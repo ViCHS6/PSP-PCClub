@@ -938,14 +938,15 @@ ListEvent list_logic(Context& ctx, WidgetId id, Rect full, Rect rows, ListState&
     }
     const bool over = contains(rows, g.cx, g.cy);
     const int row_under = over ? st.scroll + static_cast<int>((g.cy - rows.y) / kRowHeight) : -1;
-    if (ctx.is_active && g.cursor_moved && over && row_under < count && row_under != st.selected) {
-        st.selected = static_cast<int16_t>(row_under);
-        ev = ListEvent::kChanged;
-    }
+    // Курсор выделение не меняет (ui_api.h): только × — по другой строке выделяет, по выделенной — активирует.
     if (take_click(ctx, w, id)) {
         if (over && row_under < count) {
-            if (row_under != st.selected) st.selected = static_cast<int16_t>(row_under);
-            ev = ListEvent::kActivated;
+            if (row_under != st.selected) {
+                st.selected = static_cast<int16_t>(row_under);
+                ev = ListEvent::kChanged;
+            } else {
+                ev = ListEvent::kActivated;
+            }
             play_click();
         } else if (!over && st.selected >= 0) {
             ev = ListEvent::kActivated;  // клик по рамке/заголовку — как × по выделенному

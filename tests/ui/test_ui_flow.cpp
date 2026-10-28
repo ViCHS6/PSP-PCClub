@@ -53,6 +53,7 @@ namespace {
 struct TestApp {
     int a = 0, b = 0;
     int activated = -1;
+    bool list_focused = false;
     int opened = 0, closed = 0;
     bool eat_circle = false;
     ui::ListState list;
@@ -76,6 +77,7 @@ void app_frame(ui::Context& ctx, void* u) {
     if (ui::list(ctx, 3, {4, 24, 126, 4 + 3 * ui::kRowHeight}, t.list, 5, item, nullptr) ==
         ui::ListEvent::kActivated)
         t.activated = t.list.selected;
+    t.list_focused = ui::is_focused(ctx, 3);
 }
 
 void other_frame(ui::Context& ctx, void*) { ui::button(ctx, 1, {4, 4, 60, 16}, "C"); }
@@ -174,12 +176,22 @@ TEST_CASE_FIXTURE(Fixture, "ui: крестовина переводит фоку
     CHECK(g_app.a + g_app.b == 2);  // нажата одна из кнопок над списком
 }
 
-TEST_CASE_FIXTURE(Fixture, "ui: курсор на стике выбирает строку под собой") {
+TEST_CASE_FIXTURE(Fixture, "ui: курсор не меняет выделение списка, × по строке — выделяет, второй × — активирует") {
     ui::open_app(app);
     frame();
-    // Ведём курсор вниз, пока он не окажется над списком (строки начинаются с client.y + 26).
-    for (int i = 0; i < 60 && g_app.list.selected < 1; ++i) frame(0, 0.0f, -0.3f);
-    CHECK(g_app.list.selected >= 1);
+    // Ведём курсор вниз, пока список не получит фокус (выделение — первая строка).
+    for (int i = 0; i < 60 && !g_app.list_focused; ++i) frame(0, 0.0f, -0.3f);
+    REQUIRE(g_app.list_focused);
+    frame();
+    CHECK(g_app.list.selected == 0);
+    // Ещё ≈35 пикселей вниз — курсор над третьей строкой, выделение остаётся.
+    for (int i = 0; i < 20; ++i) frame(0, 0.0f, -0.3f);
+    CHECK(g_app.list.selected == 0);
+    frame(platform::kButtonCross);
+    CHECK(g_app.list.selected == 2);
+    CHECK(g_app.activated == -1);
+    frame(platform::kButtonCross);
+    CHECK(g_app.activated == 2);
 }
 
 TEST_CASE_FIXTURE(Fixture, "ui: ○ закрывает окно, программа может его перехватить") {

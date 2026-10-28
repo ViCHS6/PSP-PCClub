@@ -182,8 +182,7 @@ void draw_tile(State& s, Context& ctx, const core::World& w, int i) {
     const Rect r{static_cast<int16_t>(4 + (i % kTileCols) * (kTileW + kTileGap)),
                  static_cast<int16_t>(4 + (i / kTileCols) * (kTileH + kTileGap)), kTileW, kTileH};
     const WidgetId id = static_cast<WidgetId>(kTileBase + i);
-    if (hotspot(ctx, id, r)) s.selected = i;
-    if (is_focused(ctx, id)) s.selected = i;
+    if (hotspot(ctx, id, r)) s.selected = i;  // выбор — только × по плитке или крестовиной (map_dpad)
 
     const bool dark = p.state == core::PcState::kOff || p.state == core::PcState::kHung ||
                       p.state == core::PcState::kBroken;
@@ -219,6 +218,27 @@ void draw_tile(State& s, Context& ctx, const core::World& w, int i) {
     } else {
         outline(ctx, r, kColShadow);
     }
+}
+
+// Крестовина при фокусе на схеме: шаг по сетке мест и выбор этого ПК. Курсор выбор не меняет —
+// иначе путь курсора к кнопкам панели сбивает ПК. С края схемы кнопка не берётся: фокус уйдёт к панели.
+void map_dpad(State& s, Context& ctx, int seats) {
+    int from = -1;
+    for (int i = 0; i < seats && from < 0; ++i)
+        if (is_focused(ctx, static_cast<WidgetId>(kTileBase + i))) from = i;
+    if (from < 0) return;
+    const uint32_t dpad = pressed(ctx);
+    const int col = from % kTileCols;
+    int to = -1;
+    uint32_t button = 0;
+    if ((dpad & platform::kButtonLeft) && col > 0) { to = from - 1; button = platform::kButtonLeft; }
+    else if ((dpad & platform::kButtonRight) && col < kTileCols - 1 && from + 1 < seats) { to = from + 1; button = platform::kButtonRight; }
+    else if ((dpad & platform::kButtonUp) && from >= kTileCols) { to = from - kTileCols; button = platform::kButtonUp; }
+    else if ((dpad & platform::kButtonDown) && from + kTileCols < seats) { to = from + kTileCols; button = platform::kButtonDown; }
+    if (to < 0) return;
+    consume(ctx, button);
+    s.selected = to;
+    set_focus(ctx, static_cast<WidgetId>(kTileBase + to));
 }
 
 void install_panel(State& s, Context& ctx, core::World& w, uint8_t pc) {
@@ -399,6 +419,7 @@ void on_frame(Context& ctx, void* user) {
     if (s.selected >= seats) s.selected = seats - 1;
     if (s.installing && (s.pending != Action::kNone)) s.installing = false;
     const int before = s.selected;
+    map_dpad(s, ctx, seats);
     for (int i = 0; i < seats; ++i) draw_tile(s, ctx, w, i);
     if (s.selected != before) s.installing = false;  // сменили ПК — подменю установки закрыть
     const auto pc = static_cast<uint8_t>(s.selected);

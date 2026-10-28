@@ -173,6 +173,7 @@ void outline(Context&, Rect, Color) {}
 void progress(Context&, Rect, float, Color, const char*) {}
 void set_focus(Context&, WidgetId) {}
 bool is_focused(const Context& ctx, WidgetId id) { return ctx.is_active && g_in.focus == id; }
+uint32_t pressed(const Context& ctx) { return ctx.is_active ? g_in.pressed : 0; }
 uint32_t consume(Context& ctx, uint32_t mask) {
     const uint32_t taken = ctx.is_active ? g_in.pressed & mask : 0;
     g_in.pressed &= ~taken;
@@ -397,4 +398,41 @@ TEST_CASE("T031: Сеть — питание, чистка, выход из ми
     c.frame(c.network);
     CHECK(disabled(kRepair));
     CHECK(has_text(ui::str("ui.network.comp.hdd")));
+}
+
+TEST_CASE("T031: Сеть — выбор ПК не сбивается фокусом от курсора, крестовина по схеме выбирает") {
+    Club c;
+    core::world_init(c.world, c.data, 1);
+    c.open(c.network);
+    c.frame(c.network, {kTileBase + 2});  // × по ПК 3
+    // Курсор по пути к панели прошёл над ПК 4 (фокус на нём), затем × по «Выключить».
+    Input hover;
+    hover.focus = kTileBase + 3;
+    c.frame(c.network, hover);
+    Input power;
+    power.focus = kPower;
+    power.click = kPower;
+    c.frame(c.network, power);
+    CHECK(c.world.pcs[2].state == core::PcState::kOff);
+    CHECK(c.world.pcs[3].state == core::PcState::kIdle);
+
+    // Крестовина при фокусе на схеме: → с ПК 1 выбирает ПК 2, ↓ с ПК 2 — ПК 6.
+    Input right;
+    right.focus = kTileBase + 0;
+    right.pressed = platform::kButtonRight;
+    c.frame(c.network, right);
+    Input down;
+    down.focus = kTileBase + 1;
+    down.pressed = platform::kButtonDown;
+    c.frame(c.network, down);
+    c.frame(c.network, {kPower});
+    CHECK(c.world.pcs[5].state == core::PcState::kOff);
+    // С правого края схемы → не берётся: фокус уходит к панели, выбор остаётся.
+    Input edge;
+    edge.focus = kTileBase + 3;
+    edge.pressed = platform::kButtonRight;
+    c.frame(c.network, edge);
+    CHECK(g_in.pressed == platform::kButtonRight);
+    c.frame(c.network, {kPower});
+    CHECK(c.world.pcs[5].state == core::PcState::kIdle);
 }
