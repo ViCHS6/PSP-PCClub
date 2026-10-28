@@ -74,6 +74,7 @@ add_library(pcclub_ui OBJECT
 # --- minigames: SDK мини-игр (T050, контракт — src/minigames/sdk.h). Новая игра — сюда
 # и в src/minigames/registry.cpp (docs/formats/minigame.md §8).
 set(PCCLUB_MINIGAME_SOURCES
+    src/minigames/snake/snake.cpp
     src/minigames/example/example.cpp)
 add_library(pcclub_minigames OBJECT
     src/minigames/host.cpp
@@ -381,6 +382,8 @@ else()
         target_compile_options(pcclub_minigame_tests PRIVATE -Wall -Wextra)
         target_link_libraries(pcclub_minigame_tests PRIVATE pcclub_core doctest::doctest)
         add_test(NAME pcclub_minigame_tests COMMAND pcclub_minigame_tests)
+        target_sources(pcclub_minigame_tests PRIVATE tests/minigames/test_snake.cpp
+            tests/minigames/test_snake_runner.cpp src/tools/minigame_runner_input.cpp)
         set_tests_properties(pcclub_audio_tests PROPERTIES ENVIRONMENT "SDL_AUDIODRIVER=pcclub_no_audio_device")
     endif()
 endif()
@@ -394,6 +397,15 @@ if(NOT PSP AND PCCLUB_TESTS)
 endif()
 
 # --- T025: автономный прогон ядра; тестовый пак явно отделён от игрового контента T026.
+# T051: тот же хост, без сцены и core::World; ресурсы и строки рядом с приложением.
+if(NOT PSP)
+    add_executable(minigame-runner src/tools/minigame_runner.cpp src/tools/minigame_runner_input.cpp)
+    target_sources(minigame-runner PRIVATE src/tools/minigame_runner_screenshot.cpp)
+    target_link_libraries(minigame-runner PRIVATE pcclub_options pcclub_core pcclub_platform
+        pcclub_render pcclub_ui pcclub_minigames SDL2::SDL2 OpenGL::GL)
+    add_dependencies(minigame-runner pcclub_ui_assets)
+endif()
+
 if(NOT PSP)
     add_executable(balance-runner src/tools/balance_runner.cpp src/tools/balance_bots.cpp)
     target_link_libraries(balance-runner PRIVATE pcclub_options pcclub_core)

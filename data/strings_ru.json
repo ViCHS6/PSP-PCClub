@@ -290,5 +290,14 @@
   "os.records.rank": "№",
   "os.records.name": "Игрок",
   "os.records.score": "Результат",
+  "mg.snake.hint": "Крестовина / стик — поворот",
+  "mg.snake.score": "Очки: %d",
+  "mg.snake.best": "Рекорд: %d",
+  "mg.snake.time": "Время: %d",
+  "mg.snake.snack": "Еда: +10",
+  "mg.snake.greeting": "Перекус до обеда. Главное — не съесть хвост.",
+  "mg.snake.collision": "Тесновато стало. Очки записаны!",
+  "mg.snake.timeout": "Перекус окончен. Клуб ждёт!",
+  "mg.snake.full": "Всё съедено. Даже крошек не осталось!",
   "os.records.date_title": "Дата"
 }
