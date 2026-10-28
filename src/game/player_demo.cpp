@@ -31,6 +31,38 @@ render::MeshId create_quad(core::Vec3 a, core::Vec3 b, core::Vec3 c, core::Vec3 
     return render::mesh_create(v, 4, idx, 6);
 }
 
+// Пол 6×6 м сеткой плиток kFloorTile (docs/ART.md §4): GE на PSP не режет треугольник по
+// near-плоскости и guard band, а выбрасывает целиком — один большой квад мерцал и пропадал.
+// Текстура повторяется раз в метр.
+constexpr float kFloorHalf = 3.0f;
+constexpr float kFloorTile = 0.5f;
+constexpr int kFloorCells = static_cast<int>(2.0f * kFloorHalf / kFloorTile);  // 12 → 288 треугольников
+
+render::MeshId create_floor() {
+    constexpr int n = kFloorCells + 1;
+    static Vertex v[n * n];  // static: ~4 КиБ, не на стеке; вызывается один раз при загрузке
+    static uint16_t idx[kFloorCells * kFloorCells * 6];
+    for (int iz = 0; iz < n; ++iz) {
+        for (int ix = 0; ix < n; ++ix) {
+            const float x = -kFloorHalf + ix * kFloorTile;
+            const float z = -kFloorHalf + iz * kFloorTile;
+            v[iz * n + ix] = {x, z, render::kWhite, x, 0.0f, z};
+        }
+    }
+    int k = 0;
+    for (int iz = 0; iz < kFloorCells; ++iz) {
+        for (int ix = 0; ix < kFloorCells; ++ix) {
+            const uint16_t a = static_cast<uint16_t>(iz * n + ix);
+            const uint16_t b = static_cast<uint16_t>(a + 1);
+            const uint16_t c = static_cast<uint16_t>(a + n + 1);
+            const uint16_t d = static_cast<uint16_t>(a + n);
+            const uint16_t quad[6] = {d, c, b, d, b, a};  // CCW сверху, как прежний квад
+            for (int i = 0; i < 6; ++i) idx[k++] = quad[i];
+        }
+    }
+    return render::mesh_create(v, n * n, idx, static_cast<uint16_t>(k));
+}
+
 // Куб со стороной 1 с центром в начале координат, грани — оттенки одного цвета.
 render::MeshId create_box(uint8_t r, uint8_t g, uint8_t b) {
     Vertex v[24];
@@ -89,7 +121,7 @@ bool PlayerDemo::init() {
     if (!has_data_) std::fprintf(stderr, "player_demo: нет data.pak — подсказки показываются ключами\n");
 
     click_ = audio::sound_load_file("assets/sfx_click.wav");
-    floor_ = create_quad({-3, 0, 3}, {3, 0, 3}, {3, 0, -3}, {-3, 0, -3}, render::kWhite);
+    floor_ = create_floor();
     screen_ = create_quad({-kScreenHalfW, kScreenY0, kScreenZ}, {kScreenHalfW, kScreenY0, kScreenZ},
                           {kScreenHalfW, kScreenY1, kScreenZ}, {-kScreenHalfW, kScreenY1, kScreenZ},
                           rgba(58, 110, 165));  // «рабочий стол» Windows 2000
