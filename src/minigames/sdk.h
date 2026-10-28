@@ -18,8 +18,9 @@
 //   - register_builtin() — game/ (main) при загрузке, после render/audio/ui::init. Вызывает
 //     Desc::load каждой игры.
 //   - start / update / draw / take_result / abort — главный цикл (main, game/, раннер).
-//     Пока running(), главный цикл НЕ зовёт ui::update и не отдаёт ввод игроку в мире;
-//     ui::draw (ОС под игрой) и 3D рисуются как обычно, minigame::draw() — последним.
+//     Пока running(), главный цикл зовёт ui::update с ПУСТЫМ InputState (ОС не видит ввода,
+//     но и не держит нажатия прошлого кадра), не отдаёт ввод игроку в мире и не обрабатывает
+//     START сам; ui::draw (ОС под игрой) и 3D рисуются как обычно, minigame::draw() — последним.
 //   - Колбэки Desc — только хост, из update()/draw(). Всё — из главного потока.
 //
 // ПАМЯТЬ
@@ -70,8 +71,9 @@
 //     ...
 //     minigame::start(minigame::find_game("snake"), params);
 //     while (platform::poll()) {
-//         if (minigame::running()) minigame::update(dt, platform::input());
-//         else ui::update(dt, platform::input());
+//         const bool mg = minigame::running();
+//         if (mg) minigame::update(dt, platform::input());
+//         ui::update(dt, mg ? platform::InputState{} : platform::input());
 //         minigame::Result r;
 //         if (minigame::take_result(&r) && r.outcome == minigame::Outcome::kCompleted)
 //             core::cmd_submit_record(world, core::data_find_minigame(data, "snake"), r.score);

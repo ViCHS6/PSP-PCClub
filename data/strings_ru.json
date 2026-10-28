@@ -184,5 +184,19 @@
   "ui.about.version": "Версия 1.0, клубная сборка",
   "ui.about.controls1": "Стик — курсор, крестовина — фокус",
   "ui.about.controls2": "× — нажать, О — закрыть, L/R — окна",
-  "ui.about.ok": "OK"
+  "ui.about.ok": "OK",
+  "ui.games.title": "Игры",
+  "ui.games.icon": "Иг",
+  "ui.games.play": "Играть",
+  "ui.games.last": "Последняя: %s, очки %d, качество %d%%",
+  "ui.games.outcome.completed": "доиграна",
+  "ui.games.outcome.failed": "провал",
+  "ui.games.outcome.aborted": "брошена",
+  "mg.pause.title": "Пауза",
+  "mg.pause.resume": "Продолжить",
+  "mg.pause.quit": "Выйти",
+  "mg.example.name": "Пример",
+  "mg.example.hint": "× — остановить в зелёной зоне",
+  "mg.example.hits": "Попаданий: %d из %d",
+  "mg.example.best": "Рекорд: %d"
 }
