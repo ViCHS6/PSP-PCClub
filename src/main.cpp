@@ -1,4 +1,5 @@
 // Точка входа — общая для PSP и PC.
+#include "game/admin_desk.h"
 #include "game/club_scene.h"
 #include "game/debug_overlay.h"
 #include "platform/platform_api.h"
@@ -116,7 +117,8 @@ int main(int argc, char** argv) {
     }
 
     // T014: зал на 6 мест (вместо демо T010 PlayerDemo; DemoScene/PlayerDemo остаются в сборке).
-    // Мир демо не тикает — club_demo_world расставляет состояния ПК, чтобы было что обслужить.
+    // В новой игре ПК не виснут и не пылятся ещё долго — club_demo_world расставляет состояния
+    // ПК, чтобы было что обслужить (до стартового состояния новой игры, T062).
     static game::ClubScene scene;  // статически: пулы Colliders/InteractSystem не на стеке
     if (have_data) game::club_demo_world(g_world);
     if (!scene.init({have_data ? &g_world : nullptr, have_data ? &g_data : nullptr})) {
@@ -126,6 +128,13 @@ int main(int argc, char** argv) {
         platform::shutdown();
         return 1;
     }
+
+    // T033: × у стойки — камера въезжает в монитор, ОС открывается с Кассой.
+    static game::AdminDesk desk;
+    desk.init(scene.admin_screen(), have_ui ? ui::find_app("cashier") : ui::kNoApp);
+    overlay.set_service(&desk.timer());
+    core::World* const world = have_data ? &g_world : nullptr;
+    if (have_ui && has_arg(argc, argv, "--desk")) desk.enter(world);  // PC, для снимков въезда
 
     const char* cli_game = have_ui ? arg_value(argc, argv, "--minigame") : nullptr;
     bool cli_running = cli_game && start_cli_minigame(cli_game);
@@ -140,16 +149,18 @@ int main(int argc, char** argv) {
         const platform::InputState& input = platform::input();
         // Мини-игра забирает весь ввод, включая START (sdk.h); ОС и мир под ней — без ввода.
         const bool in_minigame = minigame::running();
-        if (have_ui && !in_minigame && (input.pressed & platform::kButtonStart)) {
+        // START — ОС сразу, без стойки (пока нет системного меню, GDD §9.1); не во время въезда.
+        const bool desk_moving = desk.state() == game::AdminDesk::State::kEntering ||
+                                 desk.state() == game::AdminDesk::State::kLeaving;
+        if (have_ui && !in_minigame && !desk_moving && (input.pressed & platform::kButtonStart)) {
             ui::set_active(!ui::active());
         }
         if (in_minigame) minigame::update(dt, input);
+        desk.update(dt, in_minigame ? platform::InputState{} : input, world);  // до ui: ○ в Кассе
         ui::update(dt, in_minigame ? platform::InputState{} : input);
-        scene.update(dt, ui::active() || in_minigame ? platform::InputState{} : input);
-        if (have_ui && scene.take_os_request()) {  // × у стойки; переход камеры — T033
-            ui::set_active(true);
-            if (!ui::is_open(demo_app)) ui::open_app(demo_app);
-        }
+        const bool world_input = desk.world_input() && !ui::active() && !in_minigame;
+        scene.update(dt, world_input ? input : platform::InputState{});
+        if (have_ui && scene.take_os_request()) desk.enter(world);
         minigame::Result result;
         if (cli_running && !minigame::running() && minigame::take_result(&result)) {
             cli_running = false;
@@ -163,7 +174,10 @@ int main(int argc, char** argv) {
         overlay.update(dt, input);
 
         render::begin_frame(render::rgba(40, 44, 52));
-        scene.draw(!ui::active() && !minigame::running());  // подсказки мира — не под ОС и мини-игрой
+        // Под ОС у стойки 3D не нужен: рабочий стол непрозрачен.
+        if (desk.draw_world())
+            scene.draw(desk.hud() && !ui::active() && !minigame::running(), desk.camera(scene.player()));
+        desk.draw_fade();
         ui::draw();
         minigame::draw();
         overlay.draw();
